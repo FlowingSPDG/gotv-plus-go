@@ -50,7 +50,11 @@ func main() {
 	r.GET("/match/id/:id/:fragment_number", handlers.SyncByIDHandler)
 	r.GET("/match/id/:id/:fragment_number/:frametype", handlers.GetBodyByIDHandler)
 
-	r.POST("/:token/:fragment_number/:frametype", handlers.PostBodyHandler)
+	// tv_broadcast_url "http://localhost:8080/token/"
+	r.POST("/token/:token/:fragment_number/:frametype", handlers.PostBodyHandler)
+
+	// tv_broadcast_url "http://localhost:8080/id/YOUR_MATCH_ID"
+	r.POST("/id/:id/:token/:fragment_number/:frametype", handlers.PostBodyByIDHandler)
 
 	r.GET("/matches", handlers.GetListHandler)
 
