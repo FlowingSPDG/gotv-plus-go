@@ -19,7 +19,31 @@ func SyncHandler(c *gin.Context) {
 		return
 	}
 	t := c.Params.ByName("token")
-	m, err := Matches.GetMatch(t)
+	m, err := Matches.GetMatchByToken(t)
+	if err != nil {
+		log.Printf("ERR : %v\n", err)
+		c.String(http.StatusNotFound, "NotFound")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"tick":            m.Fullframes[m.Fragment-Matches.Delay].Tick,
+		"rtdelay":         time.Since(m.Fullframes[m.Fragment-Matches.Delay].At).Seconds(),
+		"rcvage":          time.Since(m.Fullframes[m.Fragment].At).Seconds(),
+		"fragment":        m.Fragment - Matches.Delay,
+		"signup_fragment": m.SignupFragment,
+		"tps":             m.Tps,
+		"protocol":        m.Protocol,
+	})
+}
+
+// SyncByIDHandler handlers request against /match/:token/sync by ID
+func SyncByIDHandler(c *gin.Context) {
+	if c.Params.ByName("fragment_number") != "sync" { // Rejects all requests other than /sync
+		c.String(http.StatusBadRequest, "Unknown Request")
+		return
+	}
+	id := c.Params.ByName("id")
+	m, err := Matches.GetMatchByID(id)
 	if err != nil {
 		log.Printf("ERR : %v\n", err)
 		c.String(http.StatusNotFound, "NotFound")
@@ -48,7 +72,32 @@ func GetBodyHandler(c *gin.Context) {
 	}
 	ft := c.Params.ByName("frametype")
 
-	m, err := Matches.GetMatch(t)
+	m, err := Matches.GetMatchByToken(t)
+	if err != nil {
+		c.String(http.StatusNotFound, "Match not found")
+		return
+	}
+	frags, err := m.GetBody(ft, uint32(fragment))
+	if err != nil {
+		c.String(http.StatusNotFound, "Fragment not found")
+		return
+	}
+	c.Data(200, "application/octet-stream", frags)
+}
+
+// GetBodyByIDHandler handles fragment request from CS:GO client
+func GetBodyByIDHandler(c *gin.Context) {
+	id := c.Params.ByName("id")
+	f := c.Params.ByName("fragment_number")
+
+	fragment, err := strconv.Atoi(f)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Fragment should be int")
+		return
+	}
+	ft := c.Params.ByName("frametype")
+
+	m, err := Matches.GetMatchByID(id)
 	if err != nil {
 		c.String(http.StatusNotFound, "Match not found")
 		return
@@ -110,14 +159,14 @@ func PostBodyHandler(c *gin.Context) {
 			// RcVage:         10, // TODO?
 			// Fragment:       uint32(fragment),
 		})
-		m, err := Matches.GetMatch(t)
+		m, err := Matches.GetMatchByToken(t)
 		m.Startframe[uint32(fragment)] = &Startframe{
 			At:   time.Now(),
 			Body: reqBody,
 		}
 		c.String(http.StatusOK, "OK")
 	case "full":
-		m, err := Matches.GetMatch(t)
+		m, err := Matches.GetMatchByToken(t)
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
 			c.String(http.StatusResetContent, "")
@@ -139,7 +188,7 @@ func PostBodyHandler(c *gin.Context) {
 		}
 		c.String(http.StatusOK, "OK")
 	case "delta":
-		m, err := Matches.GetMatch(t)
+		m, err := Matches.GetMatchByToken(t)
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
 			c.String(http.StatusResetContent, "")

@@ -21,6 +21,7 @@ func InitMatchEngine(auth string, delay uint32) {
 }
 
 type Match struct {
+	ID          string                  // Manually tagged ID.
 	Token       string                  // Match token
 	Startframe  map[uint32]*Startframe  // start frame data
 	Fullframes  map[uint32]*Fullframe   // full frame data
@@ -59,6 +60,14 @@ func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
 	return nil, fmt.Errorf("Unknown ftype")
 }
 
+func (m *Match) TagID(id string) error {
+	if m == nil {
+		return fmt.Errorf("Match not found")
+	}
+	m.ID = id
+	return nil
+}
+
 type MatchesEngine struct {
 	Matches map[string]*Match // string=token
 	Auth    string
@@ -89,7 +98,21 @@ func (m *MatchesEngine) GetTokens() ([]string, error) { // Gets tokens as slice
 	return tokens, nil
 }
 
-func (m *MatchesEngine) GetMatch(token string) (*Match, error) { // Gets tokens
+func (m *MatchesEngine) GetAll() ([]*Match, error) { // Gets tokens as slice
+	if m == nil {
+		return nil, fmt.Errorf("m == nil")
+	}
+	if m.Matches == nil {
+		return nil, fmt.Errorf("m.Matches == nil")
+	}
+	matches := make([]*Match, 0, len(m.Matches))
+	for _, v := range m.Matches {
+		matches = append(matches, v)
+	}
+	return matches, nil
+}
+
+func (m *MatchesEngine) GetMatchByToken(token string) (*Match, error) { // Gets tokens
 	if m == nil {
 		return nil, fmt.Errorf("m == nil")
 	}
@@ -98,6 +121,21 @@ func (m *MatchesEngine) GetMatch(token string) (*Match, error) { // Gets tokens
 	}
 	if match, ok := m.Matches[token]; ok {
 		return match, nil
+	}
+	return nil, fmt.Errorf("not found")
+}
+
+func (m *MatchesEngine) GetMatchByID(id string) (*Match, error) { // Gets tokens
+	if m == nil {
+		return nil, fmt.Errorf("m == nil")
+	}
+	if m.Matches == nil {
+		return nil, fmt.Errorf("m.Matches == nil")
+	}
+	for _, v := range m.Matches {
+		if v.ID == id {
+			return v, nil
+		}
 	}
 	return nil, fmt.Errorf("not found")
 }

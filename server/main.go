@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	grpc "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc"
 	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -9,10 +10,11 @@ import (
 )
 
 var (
-	addr  = flag.String("addr", "localhost:8080", "Address where GOTV+ hosted at")
-	debug = flag.Bool("debug", false, "Debug mode option")
-	delay = flag.Int("delay", 3, "How much frags to delay.")
-	auth  = flag.String("auth", "gopher", "GOTV+ Auth password")
+	addr     = flag.String("addr", "localhost:8080", "Address where GOTV+ hosted at")
+	debug    = flag.Bool("debug", false, "Debug mode option")
+	grpcaddr = flag.String("grpc", "localhost:50055", "gRPC API Address")
+	delay    = flag.Int("delay", 3, "How much frags to delay.")
+	auth     = flag.String("auth", "gopher", "GOTV+ Auth password")
 )
 
 func init() {
@@ -23,6 +25,7 @@ func init() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	handlers.InitMatchEngine(*auth, uint32(*delay))
+	go grpc.StartGRPC(*grpcaddr)
 }
 
 func main() {
@@ -41,8 +44,12 @@ func main() {
 		})
 	})
 
-	r.GET("/match/:token/:fragment_number", handlers.SyncHandler)
-	r.GET("/match/:token/:fragment_number/:frametype", handlers.GetBodyHandler)
+	r.GET("/match/token/:token/:fragment_number", handlers.SyncHandler)
+	r.GET("/match/token/:token/:fragment_number/:frametype", handlers.GetBodyHandler)
+
+	r.GET("/match/id/:id/:fragment_number", handlers.SyncByIDHandler)
+	r.GET("/match/id/:id/:fragment_number/:frametype", handlers.GetBodyByIDHandler)
+
 	r.POST("/:token/:fragment_number/:frametype", handlers.PostBodyHandler)
 
 	r.GET("/matches", handlers.GetListHandler)
