@@ -44,9 +44,11 @@ func main() {
 		})
 	})
 
+	// playcast "http://localhost:8080/match/token/s1m1...."
 	r.GET("/match/token/:token/:fragment_number", handlers.SyncHandler)
 	r.GET("/match/token/:token/:fragment_number/:frametype", handlers.GetBodyHandler)
 
+	// playcast "http://localhost:8080/match/id/YOUR_MATCH_ID"
 	r.GET("/match/id/:id/:fragment_number", handlers.SyncByIDHandler)
 	r.GET("/match/id/:id/:fragment_number/:frametype", handlers.GetBodyByIDHandler)
 

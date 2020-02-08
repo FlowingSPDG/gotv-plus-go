@@ -11,13 +11,14 @@ Basically this is same with [kunalpowar/csgo-broadacst](https://github.com/kunal
 
 ## Features
 - Multi matches Support
+- Match management(Give specify ID for each matches for support better path like : `/match/this_is_good_match_path/sync` )
 - RtDelay/RcVage Support(?)
 - Front end support
+- Internal gRPC API
 
 ## TODO
-- Match management(Give specify ID for each matches for support better path like : `/match/this_is_good_match_path/sync` )
 - Dynamic auth system
+- Match Delete(to save memory and Earth!)
 - CDN Support
 - Rich Front end support
 - Hidden args support (C/B/F/A). F=fragment specification w/o sync, C=play from first? A = Play from [1]frag? B=?
-- Internal gRPC API
