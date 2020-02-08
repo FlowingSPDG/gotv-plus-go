@@ -1,9 +1,20 @@
-package models
+package handlers
 
 import (
 	"fmt"
 	"time"
 )
+
+var (
+	Matches *MatchesEngine
+)
+
+func init() {
+	Matches = &MatchesEngine{
+		Matches: make(map[string]*Match),
+		Auth:    "gopher", //  tv_broadcast_origin_auth "gopher"
+	}
+}
 
 type Match struct {
 	Token       string                  // Match token
@@ -44,14 +55,14 @@ func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
 	return nil, fmt.Errorf("Unknown ftype")
 }
 
-type Matches struct {
+type MatchesEngine struct {
 	Matches map[string]*Match // string=token
 	Auth    string
 }
 
-func (m *Matches) Register(ms *Match) {
+func (m *MatchesEngine) Register(ms *Match) {
 	if m == nil {
-		m = &Matches{}
+		m = &MatchesEngine{}
 	}
 	if m.Matches == nil {
 		m.Matches = make(map[string]*Match)
@@ -59,7 +70,7 @@ func (m *Matches) Register(ms *Match) {
 	m.Matches[ms.Token] = ms
 }
 
-func (m *Matches) GetTokens() ([]string, error) { // Gets tokens as slice
+func (m *MatchesEngine) GetTokens() ([]string, error) { // Gets tokens as slice
 	if m == nil {
 		return nil, fmt.Errorf("m == nil")
 	}
@@ -73,7 +84,7 @@ func (m *Matches) GetTokens() ([]string, error) { // Gets tokens as slice
 	return tokens, nil
 }
 
-func (m *Matches) GetMatch(token string) (*Match, error) { // Gets tokens
+func (m *MatchesEngine) GetMatch(token string) (*Match, error) { // Gets tokens
 	if m == nil {
 		return nil, fmt.Errorf("m == nil")
 	}

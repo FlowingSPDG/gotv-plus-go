@@ -1,0 +1,11 @@
+<html>
+  <h1>{{.Title}}</h1>
+
+  <ul>
+    {{$a := .Addr}}
+    {{range .Matches}}
+        <a href="steam://rungame/730/76561202255233023/+playcast%20%22{{$a}}/match/{{.}}%22">{{.}}</a>
+    {{end}}
+  </ul>
+
+</html>
