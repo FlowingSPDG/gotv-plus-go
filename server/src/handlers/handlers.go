@@ -26,10 +26,10 @@ func SyncHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"tick":            m.Tick,
-		"rtdelay":         m.RtDelay,
-		"rcvage":          m.RcVage,
-		"fragment":        m.Fragment,
+		"tick":            m.Fullframes[m.Fragment-Matches.Delay].Tick,
+		"rtdelay":         time.Since(m.Fullframes[m.Fragment-Matches.Delay].At).Seconds(),
+		"rcvage":          time.Since(m.Fullframes[m.Fragment].At).Seconds(),
+		"fragment":        m.Fragment - Matches.Delay,
 		"signup_fragment": m.SignupFragment,
 		"tps":             m.Tps,
 		"protocol":        m.Protocol,
@@ -106,8 +106,8 @@ func PostBodyHandler(c *gin.Context) {
 			Protocol:       uint8(protocol),
 			Auth:           auth,
 			Tick:           uint32(tick),
-			RtDelay:        2, // ?
-			RcVage:         2, // ?
+			// RtDelay:        10, // TODO?
+			// RcVage:         10, // TODO?
 			// Fragment:       uint32(fragment),
 		})
 		m, err := Matches.GetMatch(t)
@@ -130,8 +130,8 @@ func PostBodyHandler(c *gin.Context) {
 		}
 		log.Printf("tick = %d\n", tick)
 
-		m.Tick = uint32(tick)
 		m.Fragment = uint32(fragment)
+		// m.Tick = uint32(tick)
 		m.Fullframes[uint32(fragment)] = &Fullframe{
 			At:   time.Now(),
 			Tick: tick,

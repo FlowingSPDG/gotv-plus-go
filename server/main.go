@@ -8,17 +8,25 @@ import (
 	"net/http"
 )
 
-func main() {
-	var (
-		addr  = flag.String("addr", "localhost:8080", "Address where GOTV+ hosted at")
-		debug = flag.Bool("debug", false, "Debug mode option")
-	)
+var (
+	addr  = flag.String("addr", "localhost:8080", "Address where GOTV+ hosted at")
+	debug = flag.Bool("debug", false, "Debug mode option")
+	delay = flag.Int("delay", 3, "How much frags to delay.")
+	auth  = flag.String("auth", "gopher", "GOTV+ Auth password")
+)
+
+func init() {
 	flag.Parse()
 
 	log.Printf("DEBUG MODE : %v\n", *debug)
 	if *debug == true {
 		gin.SetMode(gin.ReleaseMode)
 	}
+	handlers.InitMatchEngine(*auth, uint32(*delay))
+}
+
+func main() {
+
 	r := gin.Default()
 
 	r.LoadHTMLGlob("templates/*.tmpl")

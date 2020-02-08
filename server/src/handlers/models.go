@@ -7,12 +7,16 @@ import (
 
 var (
 	Matches *MatchesEngine
+	Auth    string
+	Delay   uint32
 )
 
-func init() {
+// InitMatchEngine Initializes MatchEngine
+func InitMatchEngine(auth string, delay uint32) {
 	Matches = &MatchesEngine{
 		Matches: make(map[string]*Match),
-		Auth:    "gopher", //  tv_broadcast_origin_auth "gopher"
+		Auth:    auth, //  tv_broadcast_origin_auth "gopher"
+		Delay:   delay,
 	}
 }
 
@@ -58,6 +62,7 @@ func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
 type MatchesEngine struct {
 	Matches map[string]*Match // string=token
 	Auth    string
+	Delay   uint32
 }
 
 func (m *MatchesEngine) Register(ms *Match) {
