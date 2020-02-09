@@ -207,6 +207,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusBadRequest, "fragment,tps,protocol should be float or int")
 			return
 		}
+		log.Printf("Received START Fragment. Register match... Token[%s] Tps[%f] Protocol[%d]\n", t, tps, protocol)
 		Matches.Register(&Match{
 			ID:             id,
 			Token:          t,
@@ -224,6 +225,13 @@ func PostBodyByIDHandler(c *gin.Context) {
 			// Fragment:       uint32(fragment),
 		})
 		m, err := Matches.GetMatchByToken(t)
+		if err != nil {
+			log.Printf("ERR : %v\n", err)
+			c.String(http.StatusNotFound, "")
+			return
+		}
+		m.Lock()
+		defer m.Unlock()
 		m.Startframe[uint32(fragment)] = &Startframe{
 			At:   time.Now(),
 			Body: reqBody,
@@ -236,6 +244,8 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
+		m.Lock()
+		defer m.Unlock()
 		tick, err := strconv.Atoi(c.Query("tick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "tick should be float or int")
@@ -258,6 +268,8 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
+		m.Lock()
+		defer m.Unlock()
 		endtick, err := strconv.Atoi(c.Query("endtick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "endtick should be float or int")
@@ -330,6 +342,13 @@ func PostBodyHandler(c *gin.Context) {
 			// Fragment:       uint32(fragment),
 		})
 		m, err := Matches.GetMatchByToken(t)
+		if err != nil {
+			log.Printf("ERR : %v\n", err)
+			c.String(http.StatusNotFound, "")
+			return
+		}
+		m.Lock()
+		defer m.Unlock()
 		m.Startframe[uint32(fragment)] = &Startframe{
 			At:   time.Now(),
 			Body: reqBody,
@@ -342,6 +361,8 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
+		m.Lock()
+		defer m.Unlock()
 		tick, err := strconv.Atoi(c.Query("tick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "tick should be float or int")
@@ -364,6 +385,8 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
+		m.Lock()
+		defer m.Unlock()
 		endtick, err := strconv.Atoi(c.Query("endtick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "endtick should be float or int")
