@@ -30,10 +30,10 @@ Basically this is same with [kunalpowar/csgo-broadacst](https://github.com/kunal
 - RtDelay/RcVage Support(?)
 - Front end support
 - Internal gRPC API
+- CDN Support(Tested with Google Cloud CDN)
 
 ## TODO
 - Dynamic auth system
 - Match Delete(to save memory and Earth!)
-- CDN Support
 - Rich Front end support
 - Hidden args support (C/B/F/A). F=fragment specification w/o sync, C=play from first? A = Play from [1]frag? B=?

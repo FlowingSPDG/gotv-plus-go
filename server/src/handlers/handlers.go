@@ -14,6 +14,7 @@ import (
 
 // SyncHandler handlers request against /match/:token/sync
 func SyncHandler(c *gin.Context) {
+	c.Header("Cache-Control", "public, max-age=5")
 	if c.Params.ByName("fragment_number") != "sync" { // Rejects all requests other than /sync
 		c.String(http.StatusBadRequest, "Unknown Request")
 		return
@@ -70,6 +71,7 @@ func SyncHandler(c *gin.Context) {
 
 // SyncByIDHandler handlers request against /match/:token/sync by ID
 func SyncByIDHandler(c *gin.Context) {
+	c.Header("Cache-Control", "public, max-age=5")
 	if c.Params.ByName("fragment_number") != "sync" { // Rejects all requests other than /sync
 		c.String(http.StatusBadRequest, "Unknown Request")
 		return
@@ -125,6 +127,7 @@ func SyncByIDHandler(c *gin.Context) {
 
 // GetBodyHandler handles fragment request from CS:GO client
 func GetBodyHandler(c *gin.Context) {
+	c.Header("Cache-Control", "public, max-age=31536000")
 	t := c.Params.ByName("token")
 	f := c.Params.ByName("fragment_number")
 
@@ -150,6 +153,7 @@ func GetBodyHandler(c *gin.Context) {
 
 // GetBodyByIDHandler handles fragment request from CS:GO client
 func GetBodyByIDHandler(c *gin.Context) {
+	c.Header("Cache-Control", "public, max-age=31536000")
 	id := c.Params.ByName("id")
 	f := c.Params.ByName("fragment_number")
 
@@ -411,6 +415,7 @@ func PostBodyHandler(c *gin.Context) {
 
 // GetListHandler handles list of Matches
 func GetListHandler(c *gin.Context) {
+	c.Header("Cache-Control", "public, max-age=10")
 	m, err := Matches.GetTokens()
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
