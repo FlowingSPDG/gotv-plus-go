@@ -18,6 +18,7 @@ func SyncHandler(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Unknown Request")
 		return
 	}
+
 	t := c.Params.ByName("token")
 	m, err := Matches.GetMatchByToken(t)
 	if err != nil {
@@ -25,22 +26,46 @@ func SyncHandler(c *gin.Context) {
 		c.String(http.StatusNotFound, "NotFound")
 		return
 	}
-	full, err := m.GetFullFrame(m.Fragment)
-	delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
-	if err != nil {
-		log.Printf("ERR : %v\n", err)
-		c.String(http.StatusNotFound, "NotFound")
-		return
+	if c.Query("fragment") != "" {
+		frag, err := strconv.Atoi(c.Query("fragment"))
+		if err != nil {
+			c.String(http.StatusBadRequest, "fragment should be int")
+			return
+		}
+		full, err := m.GetFullFrame(m.Fragment)
+		specifiedfull, err := m.GetFullFrame(uint32(frag))
+		if err != nil {
+			log.Printf("ERR : %v\n", err)
+			c.String(http.StatusNotFound, "NotFound")
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"tick":            specifiedfull.Tick,
+			"rtdelay":         time.Since(specifiedfull.At).Seconds(),
+			"rcvage":          time.Since(full.At).Seconds(),
+			"fragment":        frag,
+			"signup_fragment": m.SignupFragment,
+			"tps":             m.Tps,
+			"protocol":        m.Protocol,
+		})
+	} else {
+		full, err := m.GetFullFrame(m.Fragment)
+		delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
+		if err != nil {
+			log.Printf("ERR : %v\n", err)
+			c.String(http.StatusNotFound, "NotFound")
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"tick":            full.Tick,
+			"rtdelay":         time.Since(delayedfull.At).Seconds(),
+			"rcvage":          time.Since(full.At).Seconds(),
+			"fragment":        m.Fragment - Matches.Delay,
+			"signup_fragment": m.SignupFragment,
+			"tps":             m.Tps,
+			"protocol":        m.Protocol,
+		})
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"tick":            full.Tick,
-		"rtdelay":         time.Since(delayedfull.At).Seconds(),
-		"rcvage":          time.Since(full.At).Seconds(),
-		"fragment":        m.Fragment - Matches.Delay,
-		"signup_fragment": m.SignupFragment,
-		"tps":             m.Tps,
-		"protocol":        m.Protocol,
-	})
 }
 
 // SyncByIDHandler handlers request against /match/:token/sync by ID
@@ -56,22 +81,46 @@ func SyncByIDHandler(c *gin.Context) {
 		c.String(http.StatusNotFound, "NotFound")
 		return
 	}
-	full, err := m.GetFullFrame(m.Fragment)
-	delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
-	if err != nil {
-		log.Printf("ERR : %v\n", err)
-		c.String(http.StatusNotFound, "NotFound")
-		return
+	if c.Query("fragment") != "" {
+		frag, err := strconv.Atoi(c.Query("fragment"))
+		if err != nil {
+			c.String(http.StatusBadRequest, "fragment should be int")
+			return
+		}
+		full, err := m.GetFullFrame(m.Fragment)
+		specifiedfull, err := m.GetFullFrame(uint32(frag))
+		if err != nil {
+			log.Printf("ERR : %v\n", err)
+			c.String(http.StatusNotFound, "NotFound")
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"tick":            specifiedfull.Tick,
+			"rtdelay":         time.Since(specifiedfull.At).Seconds(),
+			"rcvage":          time.Since(full.At).Seconds(),
+			"fragment":        frag,
+			"signup_fragment": m.SignupFragment,
+			"tps":             m.Tps,
+			"protocol":        m.Protocol,
+		})
+	} else {
+		full, err := m.GetFullFrame(m.Fragment)
+		delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
+		if err != nil {
+			log.Printf("ERR : %v\n", err)
+			c.String(http.StatusNotFound, "NotFound")
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"tick":            full.Tick,
+			"rtdelay":         time.Since(delayedfull.At).Seconds(),
+			"rcvage":          time.Since(full.At).Seconds(),
+			"fragment":        m.Fragment - Matches.Delay,
+			"signup_fragment": m.SignupFragment,
+			"tps":             m.Tps,
+			"protocol":        m.Protocol,
+		})
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"tick":            full.Tick,
-		"rtdelay":         time.Since(delayedfull.At).Seconds(),
-		"rcvage":          time.Since(full.At).Seconds(),
-		"fragment":        m.Fragment - Matches.Delay,
-		"signup_fragment": m.SignupFragment,
-		"tps":             m.Tps,
-		"protocol":        m.Protocol,
-	})
 }
 
 // GetBodyHandler handles fragment request from CS:GO client
@@ -158,6 +207,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusBadRequest, "fragment,tps,protocol should be float or int")
 			return
 		}
+		log.Printf("Received START Fragment. Register match... Token[%s] Tps[%f] Protocol[%d]\n", t, tps, protocol)
 		Matches.Register(&Match{
 			ID:             id,
 			Token:          t,
@@ -175,6 +225,13 @@ func PostBodyByIDHandler(c *gin.Context) {
 			// Fragment:       uint32(fragment),
 		})
 		m, err := Matches.GetMatchByToken(t)
+		if err != nil {
+			log.Printf("ERR : %v\n", err)
+			c.String(http.StatusNotFound, "")
+			return
+		}
+		m.Lock()
+		defer m.Unlock()
 		m.Startframe[uint32(fragment)] = &Startframe{
 			At:   time.Now(),
 			Body: reqBody,
@@ -187,6 +244,8 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
+		m.Lock()
+		defer m.Unlock()
 		tick, err := strconv.Atoi(c.Query("tick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "tick should be float or int")
@@ -209,6 +268,8 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
+		m.Lock()
+		defer m.Unlock()
 		endtick, err := strconv.Atoi(c.Query("endtick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "endtick should be float or int")
@@ -281,6 +342,13 @@ func PostBodyHandler(c *gin.Context) {
 			// Fragment:       uint32(fragment),
 		})
 		m, err := Matches.GetMatchByToken(t)
+		if err != nil {
+			log.Printf("ERR : %v\n", err)
+			c.String(http.StatusNotFound, "")
+			return
+		}
+		m.Lock()
+		defer m.Unlock()
 		m.Startframe[uint32(fragment)] = &Startframe{
 			At:   time.Now(),
 			Body: reqBody,
@@ -293,6 +361,8 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
+		m.Lock()
+		defer m.Unlock()
 		tick, err := strconv.Atoi(c.Query("tick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "tick should be float or int")
@@ -315,6 +385,8 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
+		m.Lock()
+		defer m.Unlock()
 		endtick, err := strconv.Atoi(c.Query("endtick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "endtick should be float or int")

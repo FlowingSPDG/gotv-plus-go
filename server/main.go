@@ -5,6 +5,7 @@ import (
 	grpc "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc"
 	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -23,6 +24,8 @@ func init() {
 	log.Printf("DEBUG MODE : %v\n", *debug)
 	if *debug == true {
 		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.DefaultWriter = ioutil.Discard
 	}
 	handlers.InitMatchEngine(*auth, uint32(*delay))
 	go grpc.StartGRPC(*grpcaddr)
