@@ -25,10 +25,17 @@ func SyncHandler(c *gin.Context) {
 		c.String(http.StatusNotFound, "NotFound")
 		return
 	}
+	full, err := m.GetFullFrame(m.Fragment)
+	delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
+	if err != nil {
+		log.Printf("ERR : %v\n", err)
+		c.String(http.StatusNotFound, "NotFound")
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"tick":            m.Fullframes[m.Fragment-Matches.Delay].Tick,
-		"rtdelay":         time.Since(m.Fullframes[m.Fragment-Matches.Delay].At).Seconds(),
-		"rcvage":          time.Since(m.Fullframes[m.Fragment].At).Seconds(),
+		"tick":            full.Tick,
+		"rtdelay":         time.Since(delayedfull.At).Seconds(),
+		"rcvage":          time.Since(full.At).Seconds(),
 		"fragment":        m.Fragment - Matches.Delay,
 		"signup_fragment": m.SignupFragment,
 		"tps":             m.Tps,
@@ -49,10 +56,17 @@ func SyncByIDHandler(c *gin.Context) {
 		c.String(http.StatusNotFound, "NotFound")
 		return
 	}
+	full, err := m.GetFullFrame(m.Fragment)
+	delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
+	if err != nil {
+		log.Printf("ERR : %v\n", err)
+		c.String(http.StatusNotFound, "NotFound")
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"tick":            m.Fullframes[m.Fragment-Matches.Delay].Tick,
-		"rtdelay":         time.Since(m.Fullframes[m.Fragment-Matches.Delay].At).Seconds(),
-		"rcvage":          time.Since(m.Fullframes[m.Fragment].At).Seconds(),
+		"tick":            full.Tick,
+		"rtdelay":         time.Since(delayedfull.At).Seconds(),
+		"rcvage":          time.Since(full.At).Seconds(),
 		"fragment":        m.Fragment - Matches.Delay,
 		"signup_fragment": m.SignupFragment,
 		"tps":             m.Tps,

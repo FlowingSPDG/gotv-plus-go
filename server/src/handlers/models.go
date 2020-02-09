@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -21,6 +22,7 @@ func InitMatchEngine(auth string, delay uint32) {
 }
 
 type Match struct {
+	sync.Mutex
 	ID          string                  // Manually tagged ID.
 	Token       string                  // Match token
 	Startframe  map[uint32]*Startframe  // start frame data
@@ -40,6 +42,11 @@ type Match struct {
 }
 
 func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
+	if m == nil {
+		return nil, fmt.Errorf("Match not found")
+	}
+	m.Lock()
+	defer m.Unlock()
 	switch ftype {
 	case "start":
 		if f, ok := m.Startframe[fragnumber]; ok {
@@ -60,6 +67,18 @@ func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
 	return nil, fmt.Errorf("Unknown ftype")
 }
 
+func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
+	if m == nil {
+		return nil, fmt.Errorf("Match not found")
+	}
+	m.Lock()
+	defer m.Unlock()
+	if f, ok := m.Fullframes[fragnumber]; ok {
+		return f, nil
+	}
+	return nil, fmt.Errorf("Not Found")
+}
+
 func (m *Match) TagID(id string) error {
 	if m == nil {
 		return fmt.Errorf("Match not found")
@@ -69,6 +88,7 @@ func (m *Match) TagID(id string) error {
 }
 
 type MatchesEngine struct {
+	sync.Mutex
 	Matches map[string]*Match // string=token
 	Auth    string
 	Delay   uint32
@@ -81,6 +101,8 @@ func (m *MatchesEngine) Register(ms *Match) {
 	if m.Matches == nil {
 		m.Matches = make(map[string]*Match)
 	}
+	m.Lock()
+	defer m.Unlock()
 	m.Matches[ms.Token] = ms
 }
 
@@ -91,6 +113,8 @@ func (m *MatchesEngine) GetTokens() ([]string, error) { // Gets tokens as slice
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
+	m.Lock()
+	defer m.Unlock()
 	tokens := make([]string, 0, len(m.Matches))
 	for _, v := range m.Matches {
 		tokens = append(tokens, v.Token)
@@ -105,6 +129,8 @@ func (m *MatchesEngine) GetAll() ([]*Match, error) { // Gets tokens as slice
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
+	m.Lock()
+	defer m.Unlock()
 	matches := make([]*Match, 0, len(m.Matches))
 	for _, v := range m.Matches {
 		matches = append(matches, v)
@@ -119,6 +145,8 @@ func (m *MatchesEngine) GetMatchByToken(token string) (*Match, error) { // Gets 
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
+	m.Lock()
+	defer m.Unlock()
 	if match, ok := m.Matches[token]; ok {
 		return match, nil
 	}
@@ -132,6 +160,8 @@ func (m *MatchesEngine) GetMatchByID(id string) (*Match, error) { // Gets tokens
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
+	m.Lock()
+	defer m.Unlock()
 	for _, v := range m.Matches {
 		if v.ID == id {
 			return v, nil
