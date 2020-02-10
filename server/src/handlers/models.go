@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -117,6 +118,7 @@ func (m *MatchesEngine) Delete(ms *Match) error {
 	defer m.Unlock()
 	m.Matches[ms.Token] = nil
 	delete(m.Matches, ms.Token)
+	runtime.GC()
 	return nil
 }
 
