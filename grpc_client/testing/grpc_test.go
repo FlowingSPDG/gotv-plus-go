@@ -30,3 +30,52 @@ func TestMarkID(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGetMatchByID(t *testing.T) {
+	g := &model.GOTVPLUS{}
+	g, err := g.Init("localhost:50055")
+	if err != nil {
+		t.Fatal(err)
+	}
+	match, err := g.GetMatchByID("MATCH_ID_1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("match : %v\n", match)
+}
+
+func TestGetMatchByToken(t *testing.T) {
+	g := &model.GOTVPLUS{}
+	g, err := g.Init("localhost:50055")
+	if err != nil {
+		t.Fatal(err)
+	}
+	match, err := g.GetMatchByToken("s90132533918272518t1581172258")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("match : %v\n", match)
+}
+
+func TestDeleteMatchByID(t *testing.T) {
+	g := &model.GOTVPLUS{}
+	g, err := g.Init("localhost:50055")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = g.DeleteMatchByID("MATCH_ID_1")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+func TestDeleteMatchByToken(t *testing.T) {
+	g := &model.GOTVPLUS{}
+	g, err := g.Init("localhost:50055")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = g.DeleteMatchByToken("s90132533918272518t1581172258")
+	if err != nil {
+		t.Fatal(err)
+	}
+}

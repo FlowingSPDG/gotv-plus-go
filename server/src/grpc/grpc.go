@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
 	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
 	"google.golang.org/grpc"
@@ -31,6 +32,58 @@ func (s server) GetMatches(ctx context.Context, message *pb.GetMatchesRequest) (
 	}
 	return &pb.GetMatchesReply{
 		Match:        pbmatches,
+		Error:        false,
+		Errormessage: "",
+	}, nil
+}
+
+func (s server) GetMatch(ctx context.Context, message *pb.GetMatchRequest) (*pb.Match, error) {
+	log.Println("GetMatch")
+
+	ids := message.GetIds()
+	switch i := ids.(type) {
+	case *pb.GetMatchRequest_Id:
+		match, err := handlers.Matches.GetMatchByID(i.Id)
+		if err != nil {
+			return &pb.Match{
+				Token: match.Token,
+				Id:    match.ID,
+			}, nil
+		}
+		return nil, err
+	case *pb.GetMatchRequest_Token:
+		match, err := handlers.Matches.GetMatchByToken(i.Token)
+		if err != nil {
+			return &pb.Match{
+				Token: match.Token,
+				Id:    match.ID,
+			}, nil
+		}
+		return nil, err
+	}
+	return nil, fmt.Errorf("Something went wrong")
+}
+
+func (s server) DeleteMatch(ctx context.Context, message *pb.DeleteMatchRequest) (*pb.DeleteMatchReply, error) {
+	log.Println("DeleteMatch")
+
+	ids := message.GetIds()
+	var match *handlers.Match
+	var err error
+	switch i := ids.(type) {
+	case *pb.DeleteMatchRequest_Id:
+		match, err = handlers.Matches.GetMatchByID(i.Id)
+	case *pb.DeleteMatchRequest_Token:
+		match, err = handlers.Matches.GetMatchByToken(i.Token)
+	}
+	if err != nil {
+		return nil, err
+	}
+	err = handlers.Matches.Delete(match)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.DeleteMatchReply{
 		Error:        false,
 		Errormessage: "",
 	}, nil

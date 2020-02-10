@@ -157,6 +157,213 @@ func (m *GetMatchesReply) GetErrormessage() string {
 	return ""
 }
 
+type GetMatchRequest struct {
+	// Types that are valid to be assigned to Ids:
+	//	*GetMatchRequest_Token
+	//	*GetMatchRequest_Id
+	Ids                  isGetMatchRequest_Ids `protobuf_oneof:"ids"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *GetMatchRequest) Reset()         { *m = GetMatchRequest{} }
+func (m *GetMatchRequest) String() string { return proto.CompactTextString(m) }
+func (*GetMatchRequest) ProtoMessage()    {}
+func (*GetMatchRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{3}
+}
+
+func (m *GetMatchRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetMatchRequest.Unmarshal(m, b)
+}
+func (m *GetMatchRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetMatchRequest.Marshal(b, m, deterministic)
+}
+func (m *GetMatchRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetMatchRequest.Merge(m, src)
+}
+func (m *GetMatchRequest) XXX_Size() int {
+	return xxx_messageInfo_GetMatchRequest.Size(m)
+}
+func (m *GetMatchRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetMatchRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetMatchRequest proto.InternalMessageInfo
+
+type isGetMatchRequest_Ids interface {
+	isGetMatchRequest_Ids()
+}
+
+type GetMatchRequest_Token struct {
+	Token string `protobuf:"bytes,1,opt,name=token,proto3,oneof"`
+}
+
+type GetMatchRequest_Id struct {
+	Id string `protobuf:"bytes,2,opt,name=id,proto3,oneof"`
+}
+
+func (*GetMatchRequest_Token) isGetMatchRequest_Ids() {}
+
+func (*GetMatchRequest_Id) isGetMatchRequest_Ids() {}
+
+func (m *GetMatchRequest) GetIds() isGetMatchRequest_Ids {
+	if m != nil {
+		return m.Ids
+	}
+	return nil
+}
+
+func (m *GetMatchRequest) GetToken() string {
+	if x, ok := m.GetIds().(*GetMatchRequest_Token); ok {
+		return x.Token
+	}
+	return ""
+}
+
+func (m *GetMatchRequest) GetId() string {
+	if x, ok := m.GetIds().(*GetMatchRequest_Id); ok {
+		return x.Id
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*GetMatchRequest) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*GetMatchRequest_Token)(nil),
+		(*GetMatchRequest_Id)(nil),
+	}
+}
+
+type DeleteMatchRequest struct {
+	// Types that are valid to be assigned to Ids:
+	//	*DeleteMatchRequest_Token
+	//	*DeleteMatchRequest_Id
+	Ids                  isDeleteMatchRequest_Ids `protobuf_oneof:"ids"`
+	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
+	XXX_unrecognized     []byte                   `json:"-"`
+	XXX_sizecache        int32                    `json:"-"`
+}
+
+func (m *DeleteMatchRequest) Reset()         { *m = DeleteMatchRequest{} }
+func (m *DeleteMatchRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteMatchRequest) ProtoMessage()    {}
+func (*DeleteMatchRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{4}
+}
+
+func (m *DeleteMatchRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteMatchRequest.Unmarshal(m, b)
+}
+func (m *DeleteMatchRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteMatchRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteMatchRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteMatchRequest.Merge(m, src)
+}
+func (m *DeleteMatchRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteMatchRequest.Size(m)
+}
+func (m *DeleteMatchRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteMatchRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteMatchRequest proto.InternalMessageInfo
+
+type isDeleteMatchRequest_Ids interface {
+	isDeleteMatchRequest_Ids()
+}
+
+type DeleteMatchRequest_Token struct {
+	Token string `protobuf:"bytes,1,opt,name=token,proto3,oneof"`
+}
+
+type DeleteMatchRequest_Id struct {
+	Id string `protobuf:"bytes,2,opt,name=id,proto3,oneof"`
+}
+
+func (*DeleteMatchRequest_Token) isDeleteMatchRequest_Ids() {}
+
+func (*DeleteMatchRequest_Id) isDeleteMatchRequest_Ids() {}
+
+func (m *DeleteMatchRequest) GetIds() isDeleteMatchRequest_Ids {
+	if m != nil {
+		return m.Ids
+	}
+	return nil
+}
+
+func (m *DeleteMatchRequest) GetToken() string {
+	if x, ok := m.GetIds().(*DeleteMatchRequest_Token); ok {
+		return x.Token
+	}
+	return ""
+}
+
+func (m *DeleteMatchRequest) GetId() string {
+	if x, ok := m.GetIds().(*DeleteMatchRequest_Id); ok {
+		return x.Id
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*DeleteMatchRequest) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*DeleteMatchRequest_Token)(nil),
+		(*DeleteMatchRequest_Id)(nil),
+	}
+}
+
+type DeleteMatchReply struct {
+	Error                bool     `protobuf:"varint,1,opt,name=error,proto3" json:"error,omitempty"`
+	Errormessage         string   `protobuf:"bytes,2,opt,name=errormessage,proto3" json:"errormessage,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteMatchReply) Reset()         { *m = DeleteMatchReply{} }
+func (m *DeleteMatchReply) String() string { return proto.CompactTextString(m) }
+func (*DeleteMatchReply) ProtoMessage()    {}
+func (*DeleteMatchReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{5}
+}
+
+func (m *DeleteMatchReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteMatchReply.Unmarshal(m, b)
+}
+func (m *DeleteMatchReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteMatchReply.Marshal(b, m, deterministic)
+}
+func (m *DeleteMatchReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteMatchReply.Merge(m, src)
+}
+func (m *DeleteMatchReply) XXX_Size() int {
+	return xxx_messageInfo_DeleteMatchReply.Size(m)
+}
+func (m *DeleteMatchReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteMatchReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteMatchReply proto.InternalMessageInfo
+
+func (m *DeleteMatchReply) GetError() bool {
+	if m != nil {
+		return m.Error
+	}
+	return false
+}
+
+func (m *DeleteMatchReply) GetErrormessage() string {
+	if m != nil {
+		return m.Errormessage
+	}
+	return ""
+}
+
 type MarkIDRequest struct {
 	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	Id                   string   `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
@@ -169,7 +376,7 @@ func (m *MarkIDRequest) Reset()         { *m = MarkIDRequest{} }
 func (m *MarkIDRequest) String() string { return proto.CompactTextString(m) }
 func (*MarkIDRequest) ProtoMessage()    {}
 func (*MarkIDRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{3}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{6}
 }
 
 func (m *MarkIDRequest) XXX_Unmarshal(b []byte) error {
@@ -216,7 +423,7 @@ func (m *MarkIDReply) Reset()         { *m = MarkIDReply{} }
 func (m *MarkIDReply) String() string { return proto.CompactTextString(m) }
 func (*MarkIDReply) ProtoMessage()    {}
 func (*MarkIDReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{4}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{7}
 }
 
 func (m *MarkIDReply) XXX_Unmarshal(b []byte) error {
@@ -255,6 +462,9 @@ func init() {
 	proto.RegisterType((*Match)(nil), "GOTV_PLUS.Match")
 	proto.RegisterType((*GetMatchesRequest)(nil), "GOTV_PLUS.GetMatchesRequest")
 	proto.RegisterType((*GetMatchesReply)(nil), "GOTV_PLUS.GetMatchesReply")
+	proto.RegisterType((*GetMatchRequest)(nil), "GOTV_PLUS.GetMatchRequest")
+	proto.RegisterType((*DeleteMatchRequest)(nil), "GOTV_PLUS.DeleteMatchRequest")
+	proto.RegisterType((*DeleteMatchReply)(nil), "GOTV_PLUS.DeleteMatchReply")
 	proto.RegisterType((*MarkIDRequest)(nil), "GOTV_PLUS.MarkIDRequest")
 	proto.RegisterType((*MarkIDReply)(nil), "GOTV_PLUS.MarkIDReply")
 }
@@ -262,24 +472,29 @@ func init() {
 func init() { proto.RegisterFile("gotv_plus.proto", fileDescriptor_d8a69789a3c4d4fd) }
 
 var fileDescriptor_d8a69789a3c4d4fd = []byte{
-	// 262 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4f, 0xcf, 0x2f, 0x29,
-	0x8b, 0x2f, 0xc8, 0x29, 0x2d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x74, 0xf7, 0x0f,
-	0x09, 0x8b, 0x0f, 0xf0, 0x09, 0x0d, 0x56, 0xd2, 0xe5, 0x62, 0xf5, 0x4d, 0x2c, 0x49, 0xce, 0x10,
-	0x12, 0xe1, 0x62, 0x2d, 0xc9, 0xcf, 0x4e, 0xcd, 0x93, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0c, 0x82,
-	0x70, 0x84, 0xf8, 0xb8, 0x98, 0x32, 0x53, 0x24, 0x98, 0xc0, 0x42, 0x4c, 0x99, 0x29, 0x4a, 0xc2,
-	0x5c, 0x82, 0xee, 0xa9, 0x25, 0x60, 0x1d, 0xa9, 0xc5, 0x41, 0xa9, 0x85, 0xa5, 0xa9, 0xc5, 0x25,
-	0x4a, 0xc5, 0x5c, 0xfc, 0xc8, 0x82, 0x05, 0x39, 0x95, 0x42, 0x6a, 0x5c, 0xac, 0xb9, 0x20, 0xbe,
-	0x04, 0xa3, 0x02, 0xb3, 0x06, 0xb7, 0x91, 0x80, 0x1e, 0xdc, 0x46, 0x3d, 0xb0, 0xba, 0x20, 0x88,
-	0x34, 0xc8, 0xd6, 0xd4, 0xa2, 0xa2, 0xfc, 0x22, 0xb0, 0x15, 0x1c, 0x41, 0x10, 0x8e, 0x90, 0x12,
-	0x17, 0x0f, 0x98, 0x91, 0x9b, 0x5a, 0x5c, 0x9c, 0x98, 0x9e, 0x2a, 0xc1, 0x0c, 0xb6, 0x1f, 0x45,
-	0x4c, 0xc9, 0x94, 0x8b, 0xd7, 0x37, 0xb1, 0x28, 0xdb, 0xd3, 0x05, 0xea, 0x0a, 0x22, 0x3d, 0xe0,
-	0xce, 0xc5, 0x0d, 0xd3, 0x06, 0x72, 0x27, 0xdc, 0x7e, 0x46, 0x7c, 0xf6, 0x33, 0x61, 0xda, 0x6f,
-	0x34, 0x99, 0x91, 0x0b, 0x1a, 0x8c, 0x39, 0xa5, 0xc5, 0x42, 0x1e, 0x5c, 0x5c, 0x88, 0x20, 0x10,
-	0x92, 0x41, 0xf2, 0x2e, 0x46, 0x70, 0x49, 0x49, 0xe1, 0x90, 0x2d, 0xc8, 0xa9, 0x54, 0x62, 0x10,
-	0xb2, 0xe1, 0x62, 0x83, 0x38, 0x50, 0x48, 0x02, 0x25, 0xd0, 0x90, 0xbc, 0x2a, 0x25, 0x86, 0x45,
-	0x06, 0xac, 0x3b, 0x89, 0x0d, 0x1c, 0xc1, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x9e, 0xc6,
-	0x11, 0x59, 0xf3, 0x01, 0x00, 0x00,
+	// 340 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0x4d, 0x4b, 0xc3, 0x40,
+	0x10, 0x4d, 0x52, 0x52, 0xda, 0xa9, 0xda, 0x3a, 0x4a, 0x09, 0x51, 0xa1, 0xec, 0x41, 0x7a, 0xb1,
+	0x87, 0x8a, 0x17, 0xf1, 0x54, 0x2a, 0x89, 0xd8, 0xa2, 0xc4, 0x8f, 0x6b, 0x89, 0x66, 0xa9, 0xa1,
+	0xa9, 0x89, 0xd9, 0x8d, 0xd0, 0xff, 0xe2, 0x8f, 0x95, 0x6c, 0x9a, 0x26, 0x21, 0xa9, 0x08, 0xbd,
+	0xed, 0x7c, 0xbe, 0x79, 0xf3, 0x66, 0xa1, 0x3d, 0xf7, 0xf9, 0xf7, 0x2c, 0xf0, 0x22, 0x36, 0x08,
+	0x42, 0x9f, 0xfb, 0xd8, 0x34, 0x1e, 0x9e, 0x5f, 0x67, 0x8f, 0x93, 0x97, 0x27, 0x72, 0x01, 0xea,
+	0xd4, 0xe6, 0xef, 0x1f, 0x78, 0x0c, 0x2a, 0xf7, 0x17, 0xf4, 0x53, 0x93, 0x7b, 0x72, 0xbf, 0x69,
+	0x25, 0x06, 0x1e, 0x80, 0xe2, 0x3a, 0x9a, 0x22, 0x5c, 0x8a, 0xeb, 0x90, 0x23, 0x38, 0x34, 0x28,
+	0x17, 0x15, 0x94, 0x59, 0xf4, 0x2b, 0xa2, 0x8c, 0x13, 0x06, 0xed, 0xbc, 0x33, 0xf0, 0x56, 0x78,
+	0x0e, 0xea, 0x32, 0xb6, 0x35, 0xb9, 0x57, 0xeb, 0xb7, 0x86, 0x9d, 0xc1, 0x06, 0x71, 0x20, 0xf2,
+	0xac, 0x24, 0x1c, 0xa3, 0xd2, 0x30, 0xf4, 0x43, 0x01, 0xd1, 0xb0, 0x12, 0x03, 0x09, 0xec, 0x89,
+	0xc7, 0x92, 0x32, 0x66, 0xcf, 0xa9, 0x56, 0x13, 0xf8, 0x05, 0x1f, 0x19, 0x65, 0xa0, 0xeb, 0x39,
+	0xb0, 0x5b, 0xa0, 0x60, 0x4a, 0x29, 0x89, 0x4e, 0x46, 0xc2, 0x94, 0x62, 0x1a, 0x23, 0x15, 0x6a,
+	0xae, 0xc3, 0xc8, 0x2d, 0xe0, 0x98, 0x7a, 0x94, 0xd3, 0xdd, 0xda, 0x4c, 0xa0, 0x53, 0x68, 0x13,
+	0x2f, 0x60, 0x43, 0x4c, 0xfe, 0x8b, 0x98, 0x52, 0x41, 0xec, 0x0a, 0xf6, 0xa7, 0x76, 0xb8, 0xb8,
+	0x1b, 0xa7, 0xf3, 0xfc, 0x4f, 0x19, 0x03, 0x5a, 0x69, 0xd9, 0x4e, 0xf8, 0xc3, 0x1f, 0x05, 0xd6,
+	0xf7, 0xe1, 0x45, 0x0c, 0x4d, 0x80, 0x4c, 0x5b, 0x3c, 0xcd, 0xe9, 0x58, 0xba, 0x03, 0x5d, 0xdf,
+	0x12, 0x0d, 0xbc, 0x15, 0x91, 0xf0, 0x1a, 0x1a, 0xa9, 0x13, 0xab, 0x32, 0xd3, 0x2e, 0xa5, 0x5b,
+	0x21, 0x12, 0xde, 0x43, 0x2b, 0xb7, 0x61, 0x3c, 0xcb, 0xa5, 0x94, 0x05, 0xd4, 0x4f, 0xb6, 0x85,
+	0x93, 0x41, 0x6e, 0xa0, 0x9e, 0x6c, 0x0a, 0xb5, 0x02, 0x54, 0x6e, 0xe7, 0x7a, 0xb7, 0x22, 0x22,
+	0xaa, 0xdf, 0xea, 0xe2, 0x0b, 0x5d, 0xfe, 0x06, 0x00, 0x00, 0xff, 0xff, 0xeb, 0x44, 0x63, 0x78,
+	0x55, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -295,6 +510,8 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type GOTV_PlusClient interface {
 	GetMatches(ctx context.Context, in *GetMatchesRequest, opts ...grpc.CallOption) (*GetMatchesReply, error)
+	GetMatch(ctx context.Context, in *GetMatchRequest, opts ...grpc.CallOption) (*Match, error)
+	DeleteMatch(ctx context.Context, in *DeleteMatchRequest, opts ...grpc.CallOption) (*DeleteMatchReply, error)
 	MarkID(ctx context.Context, in *MarkIDRequest, opts ...grpc.CallOption) (*MarkIDReply, error)
 }
 
@@ -315,6 +532,24 @@ func (c *gOTV_PlusClient) GetMatches(ctx context.Context, in *GetMatchesRequest,
 	return out, nil
 }
 
+func (c *gOTV_PlusClient) GetMatch(ctx context.Context, in *GetMatchRequest, opts ...grpc.CallOption) (*Match, error) {
+	out := new(Match)
+	err := c.cc.Invoke(ctx, "/GOTV_PLUS.GOTV_Plus/GetMatch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gOTV_PlusClient) DeleteMatch(ctx context.Context, in *DeleteMatchRequest, opts ...grpc.CallOption) (*DeleteMatchReply, error) {
+	out := new(DeleteMatchReply)
+	err := c.cc.Invoke(ctx, "/GOTV_PLUS.GOTV_Plus/DeleteMatch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *gOTV_PlusClient) MarkID(ctx context.Context, in *MarkIDRequest, opts ...grpc.CallOption) (*MarkIDReply, error) {
 	out := new(MarkIDReply)
 	err := c.cc.Invoke(ctx, "/GOTV_PLUS.GOTV_Plus/MarkID", in, out, opts...)
@@ -327,6 +562,8 @@ func (c *gOTV_PlusClient) MarkID(ctx context.Context, in *MarkIDRequest, opts ..
 // GOTV_PlusServer is the server API for GOTV_Plus service.
 type GOTV_PlusServer interface {
 	GetMatches(context.Context, *GetMatchesRequest) (*GetMatchesReply, error)
+	GetMatch(context.Context, *GetMatchRequest) (*Match, error)
+	DeleteMatch(context.Context, *DeleteMatchRequest) (*DeleteMatchReply, error)
 	MarkID(context.Context, *MarkIDRequest) (*MarkIDReply, error)
 }
 
@@ -336,6 +573,12 @@ type UnimplementedGOTV_PlusServer struct {
 
 func (*UnimplementedGOTV_PlusServer) GetMatches(ctx context.Context, req *GetMatchesRequest) (*GetMatchesReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMatches not implemented")
+}
+func (*UnimplementedGOTV_PlusServer) GetMatch(ctx context.Context, req *GetMatchRequest) (*Match, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMatch not implemented")
+}
+func (*UnimplementedGOTV_PlusServer) DeleteMatch(ctx context.Context, req *DeleteMatchRequest) (*DeleteMatchReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMatch not implemented")
 }
 func (*UnimplementedGOTV_PlusServer) MarkID(ctx context.Context, req *MarkIDRequest) (*MarkIDReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MarkID not implemented")
@@ -359,6 +602,42 @@ func _GOTV_Plus_GetMatches_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GOTV_PlusServer).GetMatches(ctx, req.(*GetMatchesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GOTV_Plus_GetMatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GOTV_PlusServer).GetMatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/GOTV_PLUS.GOTV_Plus/GetMatch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GOTV_PlusServer).GetMatch(ctx, req.(*GetMatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GOTV_Plus_DeleteMatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GOTV_PlusServer).DeleteMatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/GOTV_PLUS.GOTV_Plus/DeleteMatch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GOTV_PlusServer).DeleteMatch(ctx, req.(*DeleteMatchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -388,6 +667,14 @@ var _GOTV_Plus_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMatches",
 			Handler:    _GOTV_Plus_GetMatches_Handler,
+		},
+		{
+			MethodName: "GetMatch",
+			Handler:    _GOTV_Plus_GetMatch_Handler,
+		},
+		{
+			MethodName: "DeleteMatch",
+			Handler:    _GOTV_Plus_DeleteMatch_Handler,
 		},
 		{
 			MethodName: "MarkID",
