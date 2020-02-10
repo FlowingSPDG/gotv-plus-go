@@ -47,6 +47,64 @@ func (g *GOTVPLUS) GetMatches() (*pb.GetMatchesReply, error) {
 	return matches, nil
 }
 
+func (g *GOTVPLUS) GetMatchByID(id string) (*pb.Match, error) {
+	c := *g.Client
+	option := &pb.GetMatchRequest{
+		Ids: &pb.GetMatchRequest_Id{
+			Id: id,
+		},
+	}
+	matches, err := c.GetMatch(context.TODO(), option)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Matches : %v\n", *matches)
+	return matches, nil
+}
+
+func (g *GOTVPLUS) GetMatchByToken(token string) (*pb.Match, error) {
+	c := *g.Client
+	option := &pb.GetMatchRequest{
+		Ids: &pb.GetMatchRequest_Token{
+			Token: token,
+		},
+	}
+	matches, err := c.GetMatch(context.TODO(), option)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Matches : %v\n", *matches)
+	return matches, nil
+}
+
+func (g *GOTVPLUS) DeleteMatchByID(id string) error {
+	c := *g.Client
+	option := &pb.DeleteMatchRequest{
+		Ids: &pb.DeleteMatchRequest_Id{
+			Id: id,
+		},
+	}
+	_, err := c.DeleteMatch(context.TODO(), option)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g *GOTVPLUS) DeleteMatchByToken(token string) error {
+	c := *g.Client
+	option := &pb.DeleteMatchRequest{
+		Ids: &pb.DeleteMatchRequest_Token{
+			Token: token,
+		},
+	}
+	_, err := c.DeleteMatch(context.TODO(), option)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (g *GOTVPLUS) MarkID(token string, id string) error {
 	c := *g.Client
 	option := &pb.MarkIDRequest{

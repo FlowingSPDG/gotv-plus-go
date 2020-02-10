@@ -106,6 +106,20 @@ func (m *MatchesEngine) Register(ms *Match) {
 	m.Matches[ms.Token] = ms
 }
 
+func (m *MatchesEngine) Delete(ms *Match) error {
+	if m == nil {
+		return fmt.Errorf("m == nil")
+	}
+	if m.Matches == nil {
+		return fmt.Errorf("m.Matches == nil")
+	}
+	m.Lock()
+	defer m.Unlock()
+	m.Matches[ms.Token] = nil
+	delete(m.Matches, ms.Token)
+	return nil
+}
+
 func (m *MatchesEngine) GetTokens() ([]string, error) { // Gets tokens as slice
 	if m == nil {
 		return nil, fmt.Errorf("m == nil")
