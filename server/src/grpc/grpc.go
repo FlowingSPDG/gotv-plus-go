@@ -13,7 +13,7 @@ import (
 type server struct{}
 
 func (s server) GetMatches(ctx context.Context, message *pb.GetMatchesRequest) (*pb.GetMatchesReply, error) {
-	log.Println("GetMatches")
+	log.Println("[gRPC] GetMatches")
 
 	matches, err := handlers.Matches.GetAll()
 	if err != nil {
@@ -38,7 +38,7 @@ func (s server) GetMatches(ctx context.Context, message *pb.GetMatchesRequest) (
 }
 
 func (s server) GetMatch(ctx context.Context, message *pb.GetMatchRequest) (*pb.Match, error) {
-	log.Println("GetMatch")
+	log.Println("[gRPC] GetMatch")
 
 	ids := message.GetIds()
 	switch i := ids.(type) {
@@ -65,7 +65,7 @@ func (s server) GetMatch(ctx context.Context, message *pb.GetMatchRequest) (*pb.
 }
 
 func (s server) DeleteMatch(ctx context.Context, message *pb.DeleteMatchRequest) (*pb.DeleteMatchReply, error) {
-	log.Println("DeleteMatch")
+	log.Println("[gRPC] DeleteMatch")
 
 	ids := message.GetIds()
 	var match *handlers.Match
@@ -90,7 +90,7 @@ func (s server) DeleteMatch(ctx context.Context, message *pb.DeleteMatchRequest)
 }
 
 func (s server) MarkID(ctx context.Context, message *pb.MarkIDRequest) (*pb.MarkIDReply, error) {
-	log.Println("MarkID")
+	log.Println("[gRPC] MarkID")
 	m, err := handlers.Matches.GetMatchByToken(message.GetToken())
 	if err != nil {
 		return &pb.MarkIDReply{
@@ -123,7 +123,7 @@ func StartGRPC(addr string) error {
 	s := grpc.NewServer()
 	pb.RegisterGOTV_PlusServer(s, server{})
 
-	log.Printf("Listening on : %s", addr)
+	log.Printf("[gRPC] Listening on : %s", addr)
 
 	// and start...
 	if err := s.Serve(lis); err != nil {

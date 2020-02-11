@@ -68,6 +68,36 @@ func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
 	return nil, fmt.Errorf("Unknown ftype")
 }
 
+func (m *Match) RegisterStartFrame(fragment uint32, start *Startframe) error {
+	m.Lock()
+	defer m.Unlock()
+	if _, ok := m.Startframe[uint32(fragment)]; !ok {
+		return fmt.Errorf("Not Found")
+	}
+	m.Startframe[uint32(fragment)] = start
+	return nil
+}
+
+func (m *Match) RegisterFullFrame(fragment uint32, full *Fullframe) error {
+	m.Lock()
+	defer m.Unlock()
+	if _, ok := m.Fullframes[uint32(fragment)]; !ok {
+		return fmt.Errorf("Not Found")
+	}
+	m.Fullframes[uint32(fragment)] = full
+	return nil
+}
+
+func (m *Match) RegisterDelstaFrame(fragment uint32, delta *Deltaframes) error {
+	m.Lock()
+	defer m.Unlock()
+	if _, ok := m.Deltaframes[uint32(fragment)]; !ok {
+		return fmt.Errorf("Not Found")
+	}
+	m.Deltaframes[uint32(fragment)] = delta
+	return nil
+}
+
 func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
 	if m == nil {
 		return nil, fmt.Errorf("Match not found")
@@ -198,5 +228,6 @@ type Fullframe struct {
 }
 
 type Deltaframes struct {
-	Body []byte
+	Body    []byte
+	EndTick int // ??
 }

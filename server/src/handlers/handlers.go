@@ -234,12 +234,8 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, "")
 			return
 		}
-		m.Lock()
-		defer m.Unlock()
-		m.Startframe[uint32(fragment)] = &Startframe{
-			At:   time.Now(),
-			Body: reqBody,
-		}
+		m.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody})
+
 		c.String(http.StatusOK, "OK")
 	case "full":
 		m, err := Matches.GetMatchByToken(t)
@@ -248,8 +244,6 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
-		m.Lock()
-		defer m.Unlock()
 		tick, err := strconv.Atoi(c.Query("tick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "tick should be float or int")
@@ -258,12 +252,11 @@ func PostBodyByIDHandler(c *gin.Context) {
 		log.Printf("tick = %d\n", tick)
 
 		m.Fragment = uint32(fragment)
-		// m.Tick = uint32(tick)
-		m.Fullframes[uint32(fragment)] = &Fullframe{
+		m.RegisterFullFrame(uint32(fragment), &Fullframe{
 			At:   time.Now(),
 			Tick: tick,
 			Body: reqBody,
-		}
+		})
 		c.String(http.StatusOK, "OK")
 	case "delta":
 		m, err := Matches.GetMatchByToken(t)
@@ -272,8 +265,6 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
-		m.Lock()
-		defer m.Unlock()
 		endtick, err := strconv.Atoi(c.Query("endtick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "endtick should be float or int")
@@ -285,9 +276,10 @@ func PostBodyByIDHandler(c *gin.Context) {
 		// final...?
 
 		m.Fragment = uint32(fragment)
-		m.Deltaframes[uint32(fragment)] = &Deltaframes{
-			Body: reqBody,
-		}
+		m.RegisterDelstaFrame(uint32(fragment), &Deltaframes{
+			Body:    reqBody,
+			EndTick: endtick,
+		})
 		c.String(http.StatusOK, "OK")
 
 	default:
@@ -351,12 +343,7 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, "")
 			return
 		}
-		m.Lock()
-		defer m.Unlock()
-		m.Startframe[uint32(fragment)] = &Startframe{
-			At:   time.Now(),
-			Body: reqBody,
-		}
+		m.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody})
 		c.String(http.StatusOK, "OK")
 	case "full":
 		m, err := Matches.GetMatchByToken(t)
@@ -375,12 +362,11 @@ func PostBodyHandler(c *gin.Context) {
 		log.Printf("tick = %d\n", tick)
 
 		m.Fragment = uint32(fragment)
-		// m.Tick = uint32(tick)
-		m.Fullframes[uint32(fragment)] = &Fullframe{
+		m.RegisterFullFrame(uint32(fragment), &Fullframe{
 			At:   time.Now(),
 			Tick: tick,
 			Body: reqBody,
-		}
+		})
 		c.String(http.StatusOK, "OK")
 	case "delta":
 		m, err := Matches.GetMatchByToken(t)
@@ -402,9 +388,10 @@ func PostBodyHandler(c *gin.Context) {
 		// final...?
 
 		m.Fragment = uint32(fragment)
-		m.Deltaframes[uint32(fragment)] = &Deltaframes{
-			Body: reqBody,
-		}
+		m.RegisterDelstaFrame(uint32(fragment), &Deltaframes{
+			Body:    reqBody,
+			EndTick: endtick,
+		})
 		c.String(http.StatusOK, "OK")
 
 	default:
