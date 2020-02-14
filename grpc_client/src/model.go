@@ -117,3 +117,33 @@ func (g *GOTVPLUS) MarkID(token string, id string) error {
 	}
 	return nil
 }
+
+func (g *GOTVPLUS) SaveMatchToFileByID(id string, path string) error {
+	c := *g.Client
+	option := &pb.SaveMatchToFileRequest{
+		Ids: &pb.SaveMatchToFileRequest_Id{
+			Id: id,
+		},
+		Path: path,
+	}
+	_, err := c.SaveMatchToFile(context.TODO(), option)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g *GOTVPLUS) SaveMatchToFileByToken(token string, path string) error {
+	c := *g.Client
+	option := &pb.SaveMatchToFileRequest{
+		Ids: &pb.SaveMatchToFileRequest_Token{
+			Token: token,
+		},
+		Path: path,
+	}
+	_, err := c.SaveMatchToFile(context.TODO(), option)
+	if err != nil {
+		return err
+	}
+	return nil
+}

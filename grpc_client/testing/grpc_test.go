@@ -79,3 +79,27 @@ func TestDeleteMatchByToken(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSaveMatchToFileByToken(t *testing.T) {
+	g := &model.GOTVPLUS{}
+	g, err := g.Init("localhost:50055")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = g.SaveMatchToFileByToken("s90132662586687498t1581649239", "matches")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSaveMatchToFileByID(t *testing.T) {
+	g := &model.GOTVPLUS{}
+	g, err := g.Init("localhost:50055")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = g.SaveMatchToFileByToken("MATCH_ID_1", "matches")
+	if err != nil {
+		t.Fatal(err)
+	}
+}

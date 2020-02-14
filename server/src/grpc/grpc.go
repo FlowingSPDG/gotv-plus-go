@@ -111,6 +111,36 @@ func (s server) MarkID(ctx context.Context, message *pb.MarkIDRequest) (*pb.Mark
 	}, nil
 }
 
+func (s server) SaveMatchToFile(ctx context.Context, message *pb.SaveMatchToFileRequest) (*pb.SaveMatchToFileReply, error) {
+	log.Println("[gRPC] SaveMatchToFile")
+	ids := message.GetIds()
+	var match *handlers.Match
+	var err error
+	switch i := ids.(type) {
+	case *pb.SaveMatchToFileRequest_Id:
+		match, err = handlers.Matches.GetMatchByID(i.Id)
+	case *pb.SaveMatchToFileRequest_Token:
+		match, err = handlers.Matches.GetMatchByToken(i.Token)
+	}
+	if err != nil {
+		log.Printf("ERR on saving match : %v\n", err)
+		return nil, err
+	}
+	log.Printf("Match : %v\n", match)
+	err = match.SaveMatchToFile(message.GetPath())
+	if err != nil {
+		log.Printf("ERR on saving match : %v\n", err)
+		return &pb.SaveMatchToFileReply{
+			Error:        true,
+			Errormessage: err.Error(),
+		}, nil
+	}
+	return &pb.SaveMatchToFileReply{
+		Error:        false,
+		Errormessage: "",
+	}, nil
+}
+
 // StartGRPC Starts gRPC API Server on specified ADDR
 func StartGRPC(addr string) error {
 	lis, err := net.Listen("tcp", addr)

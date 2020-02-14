@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"archive/tar"
 	"fmt"
+	"log"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -115,6 +118,92 @@ func (m *Match) TagID(id string) error {
 		return fmt.Errorf("Match not found")
 	}
 	m.ID = id
+	return nil
+}
+
+func (m *Match) SaveMatchToFile(path string) error {
+	if m == nil {
+		return fmt.Errorf("Match not found")
+	}
+	log.Printf("Saving match %s to file...\n", m.Token)
+
+	log.Printf("Writing start fragmnets... %v\n", m.Startframe)
+	startfile, err := os.Create(fmt.Sprintf("%s/%s_start.tar", path, m.Token))
+	if err != nil {
+		return err
+	}
+	defer startfile.Close()
+	starttw := tar.NewWriter(startfile)
+	defer starttw.Close()
+
+	for k, v := range m.Startframe {
+		log.Printf("Writing start fragment : [%v]\n", v.Body)
+		// Header info
+		StartHeader := &tar.Header{
+			Name: fmt.Sprintf("%d", k),
+			Size: int64(len(v.Body)),
+		}
+		// Write header
+		if err := starttw.WriteHeader(StartHeader); err != nil {
+			return err
+		}
+		// Write fragments
+		if _, err := starttw.Write(v.Body); err != nil {
+			return err
+		}
+	}
+
+	log.Printf("Writing full fragmnets... %v\n", m.Fullframes)
+	fullfile, err := os.Create(fmt.Sprintf("%s/%s_full.tar", path, m.Token))
+	if err != nil {
+		return err
+	}
+	defer fullfile.Close()
+	fulltw := tar.NewWriter(fullfile)
+	defer fulltw.Close()
+
+	// Write fragments
+	for k, v := range m.Fullframes {
+		log.Printf("Writing full fragment : [%v]\n", v.Body)
+		// Header info
+		FullHeader := &tar.Header{
+			Name: fmt.Sprintf("%d", k),
+			Size: int64(len(v.Body)),
+		}
+		// Write header
+		if err := fulltw.WriteHeader(FullHeader); err != nil {
+			return err
+		}
+		if _, err := fulltw.Write(v.Body); err != nil {
+			return err
+		}
+	}
+
+	log.Printf("Writing delta fragmnets... %v\n", m.Deltaframes)
+	deltafile, err := os.Create(fmt.Sprintf("%s/%s_delta.tar", path, m.Token))
+	if err != nil {
+		return err
+	}
+	defer deltafile.Close()
+	deltatw := tar.NewWriter(deltafile)
+	defer deltatw.Close()
+
+	// Write fragments
+	for k, v := range m.Deltaframes {
+		log.Printf("Writing delta fragment : [%v]\n", v.Body)
+		// Header info
+		DeltaHeader := &tar.Header{
+			Name: fmt.Sprintf("%d", k),
+			Size: int64(len(v.Body)),
+		}
+		// Write header
+		if err := deltatw.WriteHeader(DeltaHeader); err != nil {
+			return err
+		}
+		if _, err := deltatw.Write(v.Body); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
