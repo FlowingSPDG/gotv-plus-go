@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"archive/tar"
+	"compress/gzip"
 	"fmt"
 	"log"
 	"os"
@@ -132,12 +133,16 @@ func (m *Match) SaveMatchToFile(path string) error {
 	log.Printf("Saving match %s to file...\n", m.Token)
 
 	log.Printf("Writing start fragmnets... %v\n", m.Startframe)
-	startfile, err := os.Create(fmt.Sprintf("%s/%s_start.tar", path, m.Token))
+	startfile, err := os.Create(fmt.Sprintf("%s/%s_start.tar.gz", path, m.Token))
 	if err != nil {
 		return err
 	}
 	defer startfile.Close()
-	starttw := tar.NewWriter(startfile)
+
+	StartgzipReader := gzip.NewWriter(startfile)
+	defer StartgzipReader.Close()
+
+	starttw := tar.NewWriter(StartgzipReader)
 	defer starttw.Close()
 
 	for k, v := range m.Startframe {
@@ -158,12 +163,14 @@ func (m *Match) SaveMatchToFile(path string) error {
 	}
 
 	log.Printf("Writing full fragmnets... %v\n", m.Fullframes)
-	fullfile, err := os.Create(fmt.Sprintf("%s/%s_full.tar", path, m.Token))
+	fullfile, err := os.Create(fmt.Sprintf("%s/%s_full.tar.gz", path, m.Token))
 	if err != nil {
 		return err
 	}
 	defer fullfile.Close()
-	fulltw := tar.NewWriter(fullfile)
+	fullgzipReader := gzip.NewWriter(fullfile)
+	defer fullgzipReader.Close()
+	fulltw := tar.NewWriter(fullgzipReader)
 	defer fulltw.Close()
 
 	// Write fragments
@@ -184,12 +191,14 @@ func (m *Match) SaveMatchToFile(path string) error {
 	}
 
 	log.Printf("Writing delta fragmnets... %v\n", m.Deltaframes)
-	deltafile, err := os.Create(fmt.Sprintf("%s/%s_delta.tar", path, m.Token))
+	deltafile, err := os.Create(fmt.Sprintf("%s/%s_delta.tar.gz", path, m.Token))
 	if err != nil {
 		return err
 	}
 	defer deltafile.Close()
-	deltatw := tar.NewWriter(deltafile)
+	deltagzipReader := gzip.NewWriter(deltafile)
+	defer fullgzipReader.Close()
+	deltatw := tar.NewWriter(deltagzipReader)
 	defer deltatw.Close()
 
 	// Write fragments
