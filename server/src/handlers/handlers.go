@@ -24,7 +24,7 @@ func SyncHandler(c *gin.Context) {
 	m, err := Matches.GetMatchByToken(t)
 	if err != nil {
 		log.Printf("ERR : %v\n", err)
-		c.String(http.StatusNotFound, "NotFound")
+		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 	if c.Query("fragment") != "" {
@@ -37,7 +37,7 @@ func SyncHandler(c *gin.Context) {
 		specifiedfull, err := m.GetFullFrame(uint32(frag))
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
-			c.String(http.StatusNotFound, "NotFound")
+			c.String(http.StatusNotFound, err.Error())
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
@@ -54,7 +54,7 @@ func SyncHandler(c *gin.Context) {
 		delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
-			c.String(http.StatusNotFound, "NotFound")
+			c.String(http.StatusNotFound, err.Error())
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
@@ -80,7 +80,7 @@ func SyncByIDHandler(c *gin.Context) {
 	m, err := Matches.GetMatchByID(id)
 	if err != nil {
 		log.Printf("ERR : %v\n", err)
-		c.String(http.StatusNotFound, "NotFound")
+		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 	if c.Query("fragment") != "" {
@@ -93,7 +93,7 @@ func SyncByIDHandler(c *gin.Context) {
 		specifiedfull, err := m.GetFullFrame(uint32(frag))
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
-			c.String(http.StatusNotFound, "NotFound")
+			c.String(http.StatusNotFound, err.Error())
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
@@ -110,7 +110,7 @@ func SyncByIDHandler(c *gin.Context) {
 		delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
-			c.String(http.StatusNotFound, "NotFound")
+			c.String(http.StatusNotFound, err.Error())
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
@@ -140,12 +140,12 @@ func GetBodyHandler(c *gin.Context) {
 
 	m, err := Matches.GetMatchByToken(t)
 	if err != nil {
-		c.String(http.StatusNotFound, "Match not found")
+		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 	frags, err := m.GetBody(ft, uint32(fragment))
 	if err != nil {
-		c.String(http.StatusNotFound, "Fragment not found")
+		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 	c.Data(200, "application/octet-stream", frags)
@@ -166,12 +166,12 @@ func GetBodyByIDHandler(c *gin.Context) {
 
 	m, err := Matches.GetMatchByID(id)
 	if err != nil {
-		c.String(http.StatusNotFound, "Match not found")
+		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 	frags, err := m.GetBody(ft, uint32(fragment))
 	if err != nil {
-		c.String(http.StatusNotFound, "Fragment not found")
+		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 	c.Data(200, "application/octet-stream", frags)
@@ -231,7 +231,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 		m, err := Matches.GetMatchByToken(t)
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
-			c.String(http.StatusNotFound, "")
+			c.String(http.StatusNotFound, err.Error())
 			return
 		}
 		m.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody})
@@ -251,7 +251,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 		}
 		log.Printf("tick = %d\n", tick)
 
-		m.Fragment = uint32(fragment)
+		m.UpdateFragment(uint32(fragment))
 		m.RegisterFullFrame(uint32(fragment), &Fullframe{
 			At:   time.Now(),
 			Tick: tick,
@@ -275,7 +275,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 
 		// final...?
 
-		m.Fragment = uint32(fragment)
+		m.UpdateFragment(uint32(fragment))
 		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
 			Body:    reqBody,
 			EndTick: endtick,
@@ -322,7 +322,7 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusBadRequest, "fragment,tps,protocol should be float or int")
 			return
 		}
-		Matches.Register(&Match{
+		match := &Match{
 			Token:          t,
 			Startframe:     make(map[uint32]*Startframe),
 			Fullframes:     make(map[uint32]*Fullframe),
@@ -336,14 +336,9 @@ func PostBodyHandler(c *gin.Context) {
 			// RtDelay:        10, // TODO?
 			// RcVage:         10, // TODO?
 			// Fragment:       uint32(fragment),
-		})
-		m, err := Matches.GetMatchByToken(t)
-		if err != nil {
-			log.Printf("ERR : %v\n", err)
-			c.String(http.StatusNotFound, "")
-			return
 		}
-		m.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody})
+		match.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody})
+		Matches.Register(match)
 		c.String(http.StatusOK, "OK")
 	case "full":
 		m, err := Matches.GetMatchByToken(t)
@@ -352,8 +347,6 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
-		m.Lock()
-		defer m.Unlock()
 		tick, err := strconv.Atoi(c.Query("tick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "tick should be float or int")
@@ -361,7 +354,7 @@ func PostBodyHandler(c *gin.Context) {
 		}
 		log.Printf("tick = %d\n", tick)
 
-		m.Fragment = uint32(fragment)
+		m.UpdateFragment(uint32(fragment))
 		m.RegisterFullFrame(uint32(fragment), &Fullframe{
 			At:   time.Now(),
 			Tick: tick,
@@ -375,8 +368,6 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusResetContent, "")
 			return
 		}
-		m.Lock()
-		defer m.Unlock()
 		endtick, err := strconv.Atoi(c.Query("endtick"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "endtick should be float or int")
@@ -387,7 +378,7 @@ func PostBodyHandler(c *gin.Context) {
 
 		// final...?
 
-		m.Fragment = uint32(fragment)
+		m.UpdateFragment(uint32(fragment))
 		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
 			Body:    reqBody,
 			EndTick: endtick,
