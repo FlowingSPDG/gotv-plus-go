@@ -88,7 +88,7 @@ func (m *Match) RegisterFullFrame(fragment uint32, full *Fullframe) error {
 	return nil
 }
 
-func (m *Match) RegisterDelstaFrame(fragment uint32, delta *Deltaframes) error {
+func (m *Match) RegisterDeltaFrame(fragment uint32, delta *Deltaframes) error {
 	m.Lock()
 	defer m.Unlock()
 	if _, ok := m.Deltaframes[uint32(fragment)]; !ok {

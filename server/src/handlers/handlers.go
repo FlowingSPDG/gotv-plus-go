@@ -276,7 +276,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 		// final...?
 
 		m.Fragment = uint32(fragment)
-		m.RegisterDelstaFrame(uint32(fragment), &Deltaframes{
+		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
 			Body:    reqBody,
 			EndTick: endtick,
 		})
@@ -388,7 +388,7 @@ func PostBodyHandler(c *gin.Context) {
 		// final...?
 
 		m.Fragment = uint32(fragment)
-		m.RegisterDelstaFrame(uint32(fragment), &Deltaframes{
+		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
 			Body:    reqBody,
 			EndTick: endtick,
 		})
