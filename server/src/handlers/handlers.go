@@ -42,6 +42,7 @@ func SyncHandler(c *gin.Context) {
 		specifiedfull, err := m.GetFullFrame(uint32(frag))
 		if err != nil {
 			log.Printf("ERR : Fragment %d not found. %v\n", frag, err)
+
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
