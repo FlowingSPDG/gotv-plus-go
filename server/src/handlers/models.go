@@ -1,7 +1,14 @@
 package handlers
 
 import (
+	"compress/gzip"
 	"fmt"
+	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"io/ioutil"
+	"log"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -50,9 +57,6 @@ func (m *Match) UpdateFragment(fragnumber uint32) error {
 }
 
 func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
-	if m == nil {
-		return nil, fmt.Errorf("Match not found")
-	}
 	m.Lock()
 	defer m.Unlock()
 	switch ftype {
@@ -115,11 +119,71 @@ func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
 }
 
 func (m *Match) TagID(id string) error {
-	if m == nil {
-		return fmt.Errorf("Match not found")
-	}
 	m.ID = id
 	return nil
+}
+
+func (m *Match) SaveMatchToFile(filename string) error {
+	log.Printf("Saving match %s to file...\n", m.Token)
+
+	file, err := os.Create(fmt.Sprintf("matches/%s.gz", filename))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	binary := &pb.MatchBinary{
+		Id:             m.ID,
+		Token:          m.Token,
+		SignupFragment: m.SignupFragment,
+		StartFrame:     make([]*pb.StartFrameBinary, 0, len(m.Startframe)),
+		FullFrame:      make([]*pb.FullFrameBinary, 0, len(m.Fullframes)),
+		DeltaFrame:     make([]*pb.DeltaFrameBinary, 0, len(m.Deltaframes)),
+	}
+	for k, v := range m.Startframe {
+		t, _ := ptypes.TimestampProto(v.At)
+		binary.StartFrame = append(binary.StartFrame, &pb.StartFrameBinary{
+			Fragment: k,
+			Tick:     m.Tick,
+			Tps:      m.Tps,
+			Map:      m.Map,
+			Protocol: uint32(m.Protocol),
+			Body:     v.Body,
+			At:       t,
+		})
+	}
+
+	for k, v := range m.Fullframes {
+		t, _ := ptypes.TimestampProto(v.At)
+		binary.FullFrame = append(binary.FullFrame, &pb.FullFrameBinary{
+			Fragment: k,
+			Tick:     m.Tick,
+			Body:     v.Body,
+			At:       t,
+		})
+	}
+
+	for k, v := range m.Deltaframes {
+		binary.DeltaFrame = append(binary.DeltaFrame, &pb.DeltaFrameBinary{
+			Fragment: k,
+			Endtick:  uint32(v.EndTick),
+			Body:     v.Body,
+		})
+	}
+
+	data, err := proto.Marshal(binary)
+	if err != nil {
+		return err
+	}
+	gzipwriter := gzip.NewWriter(file)
+	defer gzipwriter.Close()
+	totalbytes, err := gzipwriter.Write(data)
+	if err != nil {
+		return err
+	}
+	log.Printf("Writed to %s. %dbytes\n", file.Name(), totalbytes)
+	return nil
+
 }
 
 type MatchesEngine struct {
@@ -130,9 +194,6 @@ type MatchesEngine struct {
 }
 
 func (m *MatchesEngine) Register(ms *Match) {
-	if m == nil {
-		m = &MatchesEngine{}
-	}
 	if m.Matches == nil {
 		m.Matches = make(map[string]*Match)
 	}
@@ -141,10 +202,78 @@ func (m *MatchesEngine) Register(ms *Match) {
 	m.Matches[ms.Token] = ms
 }
 
-func (m *MatchesEngine) Delete(ms *Match) error {
-	if m == nil {
-		return fmt.Errorf("m == nil")
+func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
+	if m.Matches == nil {
+		m.Matches = make(map[string]*Match)
 	}
+
+	file, err := os.Open(fmt.Sprintf("matches/%s.gz", path))
+	if err != nil {
+		return "", err
+	}
+	gzipreader, err := gzip.NewReader(file)
+	if err != nil {
+		return "", err
+	}
+	buf := &pb.MatchBinary{}
+	bytes, err := ioutil.ReadAll(gzipreader)
+	if err != nil {
+		return "", err
+	}
+	err = proto.Unmarshal(bytes, buf)
+
+	match := &Match{
+		ID:             buf.Id,
+		Token:          buf.Token,
+		Startframe:     make(map[uint32]*Startframe),
+		Fullframes:     make(map[uint32]*Fullframe),
+		Deltaframes:    make(map[uint32]*Deltaframes),
+		Tps:            buf.StartFrame[0].Tps,
+		Map:            buf.StartFrame[0].Map,
+		Protocol:       uint8(buf.StartFrame[0].Protocol),
+		Auth:           "", // TODO
+		Tick:           buf.StartFrame[0].Tick,
+		SignupFragment: buf.StartFrame[0].Fragment,
+		Fragment:       buf.FullFrame[0].Fragment, // TODO?
+	}
+
+	for _, v := range buf.StartFrame {
+		// t, _ := ptypes.Timestamp(v.At)
+		match.Startframe[v.Fragment] = &Startframe{
+			// At:   t,
+			At:   time.Now(),
+			Body: v.Body,
+		}
+	}
+
+	fulls := make([]uint32, 0, len(match.Fullframes))
+	for _, v := range buf.FullFrame {
+		// t, _ := ptypes.Timestamp(v.At)
+		match.Fullframes[v.Fragment] = &Fullframe{
+			//At:   t,
+			At:   time.Now(),
+			Tick: int(v.Tick),
+			Body: v.Body,
+		}
+		fulls = append(fulls, v.Fragment)
+	}
+
+	deltas := make([]uint32, 0, len(match.Deltaframes))
+	for _, v := range buf.DeltaFrame {
+		match.Deltaframes[v.Fragment] = &Deltaframes{
+			EndTick: int(v.Endtick),
+			Body:    v.Body,
+		}
+		deltas = append(deltas, v.Fragment)
+	}
+
+	Matches.Register(match)
+
+	log.Printf("Loaded match from %s. Available Full list : [%v], Delta : [%v]\n", file.Name(), fulls, deltas)
+	return match.ID, nil
+}
+
+func (m *MatchesEngine) Delete(ms *Match) error {
 	if m.Matches == nil {
 		return fmt.Errorf("m.Matches == nil")
 	}
@@ -157,9 +286,6 @@ func (m *MatchesEngine) Delete(ms *Match) error {
 }
 
 func (m *MatchesEngine) GetTokens() ([]string, error) { // Gets tokens as slice
-	if m == nil {
-		return nil, fmt.Errorf("m == nil")
-	}
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
@@ -173,9 +299,6 @@ func (m *MatchesEngine) GetTokens() ([]string, error) { // Gets tokens as slice
 }
 
 func (m *MatchesEngine) GetAll() ([]*Match, error) { // Gets tokens as slice
-	if m == nil {
-		return nil, fmt.Errorf("m == nil")
-	}
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
@@ -189,9 +312,6 @@ func (m *MatchesEngine) GetAll() ([]*Match, error) { // Gets tokens as slice
 }
 
 func (m *MatchesEngine) GetMatchByToken(token string) (*Match, error) { // Gets tokens
-	if m == nil {
-		return nil, fmt.Errorf("m == nil")
-	}
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
@@ -204,9 +324,6 @@ func (m *MatchesEngine) GetMatchByToken(token string) (*Match, error) { // Gets 
 }
 
 func (m *MatchesEngine) GetMatchByID(id string) (*Match, error) { // Gets tokens
-	if m == nil {
-		return nil, fmt.Errorf("m == nil")
-	}
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}

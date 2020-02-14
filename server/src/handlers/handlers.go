@@ -34,9 +34,15 @@ func SyncHandler(c *gin.Context) {
 			return
 		}
 		full, err := m.GetFullFrame(m.Fragment)
+		if err != nil {
+			log.Printf("ERR : Fragment %d not found. %v\n", m.Fragment, err)
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
 		specifiedfull, err := m.GetFullFrame(uint32(frag))
 		if err != nil {
-			log.Printf("ERR : %v\n", err)
+			log.Printf("ERR : Fragment %d not found. %v\n", frag, err)
+
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
@@ -51,9 +57,14 @@ func SyncHandler(c *gin.Context) {
 		})
 	} else {
 		full, err := m.GetFullFrame(m.Fragment)
+		if err != nil {
+			log.Printf("ERR : Fragment %d not found. %v\n", m.Fragment, err)
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
 		delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
 		if err != nil {
-			log.Printf("ERR : %v\n", err)
+			log.Printf("ERR : Fragment %d not found. %v\n", m.Fragment-Matches.Delay, err)
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}

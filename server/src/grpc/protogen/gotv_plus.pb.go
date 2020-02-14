@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,6 +25,290 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type MatchBinary struct {
+	Token                string              `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Id                   string              `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	SignupFragment       uint32              `protobuf:"varint,3,opt,name=signup_fragment,json=signupFragment,proto3" json:"signup_fragment,omitempty"`
+	StartFrame           []*StartFrameBinary `protobuf:"bytes,4,rep,name=StartFrame,proto3" json:"StartFrame,omitempty"`
+	FullFrame            []*FullFrameBinary  `protobuf:"bytes,5,rep,name=FullFrame,proto3" json:"FullFrame,omitempty"`
+	DeltaFrame           []*DeltaFrameBinary `protobuf:"bytes,6,rep,name=DeltaFrame,proto3" json:"DeltaFrame,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
+	XXX_unrecognized     []byte              `json:"-"`
+	XXX_sizecache        int32               `json:"-"`
+}
+
+func (m *MatchBinary) Reset()         { *m = MatchBinary{} }
+func (m *MatchBinary) String() string { return proto.CompactTextString(m) }
+func (*MatchBinary) ProtoMessage()    {}
+func (*MatchBinary) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{0}
+}
+
+func (m *MatchBinary) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MatchBinary.Unmarshal(m, b)
+}
+func (m *MatchBinary) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MatchBinary.Marshal(b, m, deterministic)
+}
+func (m *MatchBinary) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MatchBinary.Merge(m, src)
+}
+func (m *MatchBinary) XXX_Size() int {
+	return xxx_messageInfo_MatchBinary.Size(m)
+}
+func (m *MatchBinary) XXX_DiscardUnknown() {
+	xxx_messageInfo_MatchBinary.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MatchBinary proto.InternalMessageInfo
+
+func (m *MatchBinary) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *MatchBinary) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *MatchBinary) GetSignupFragment() uint32 {
+	if m != nil {
+		return m.SignupFragment
+	}
+	return 0
+}
+
+func (m *MatchBinary) GetStartFrame() []*StartFrameBinary {
+	if m != nil {
+		return m.StartFrame
+	}
+	return nil
+}
+
+func (m *MatchBinary) GetFullFrame() []*FullFrameBinary {
+	if m != nil {
+		return m.FullFrame
+	}
+	return nil
+}
+
+func (m *MatchBinary) GetDeltaFrame() []*DeltaFrameBinary {
+	if m != nil {
+		return m.DeltaFrame
+	}
+	return nil
+}
+
+type StartFrameBinary struct {
+	Fragment             uint32               `protobuf:"varint,1,opt,name=fragment,proto3" json:"fragment,omitempty"`
+	Tick                 uint32               `protobuf:"varint,2,opt,name=tick,proto3" json:"tick,omitempty"`
+	Tps                  float64              `protobuf:"fixed64,3,opt,name=tps,proto3" json:"tps,omitempty"`
+	Map                  string               `protobuf:"bytes,4,opt,name=map,proto3" json:"map,omitempty"`
+	Protocol             uint32               `protobuf:"varint,5,opt,name=protocol,proto3" json:"protocol,omitempty"`
+	Body                 []byte               `protobuf:"bytes,6,opt,name=body,proto3" json:"body,omitempty"`
+	At                   *timestamp.Timestamp `protobuf:"bytes,7,opt,name=at,proto3" json:"at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *StartFrameBinary) Reset()         { *m = StartFrameBinary{} }
+func (m *StartFrameBinary) String() string { return proto.CompactTextString(m) }
+func (*StartFrameBinary) ProtoMessage()    {}
+func (*StartFrameBinary) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{1}
+}
+
+func (m *StartFrameBinary) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StartFrameBinary.Unmarshal(m, b)
+}
+func (m *StartFrameBinary) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StartFrameBinary.Marshal(b, m, deterministic)
+}
+func (m *StartFrameBinary) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StartFrameBinary.Merge(m, src)
+}
+func (m *StartFrameBinary) XXX_Size() int {
+	return xxx_messageInfo_StartFrameBinary.Size(m)
+}
+func (m *StartFrameBinary) XXX_DiscardUnknown() {
+	xxx_messageInfo_StartFrameBinary.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StartFrameBinary proto.InternalMessageInfo
+
+func (m *StartFrameBinary) GetFragment() uint32 {
+	if m != nil {
+		return m.Fragment
+	}
+	return 0
+}
+
+func (m *StartFrameBinary) GetTick() uint32 {
+	if m != nil {
+		return m.Tick
+	}
+	return 0
+}
+
+func (m *StartFrameBinary) GetTps() float64 {
+	if m != nil {
+		return m.Tps
+	}
+	return 0
+}
+
+func (m *StartFrameBinary) GetMap() string {
+	if m != nil {
+		return m.Map
+	}
+	return ""
+}
+
+func (m *StartFrameBinary) GetProtocol() uint32 {
+	if m != nil {
+		return m.Protocol
+	}
+	return 0
+}
+
+func (m *StartFrameBinary) GetBody() []byte {
+	if m != nil {
+		return m.Body
+	}
+	return nil
+}
+
+func (m *StartFrameBinary) GetAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.At
+	}
+	return nil
+}
+
+type FullFrameBinary struct {
+	Fragment             uint32               `protobuf:"varint,1,opt,name=fragment,proto3" json:"fragment,omitempty"`
+	Tick                 uint32               `protobuf:"varint,2,opt,name=tick,proto3" json:"tick,omitempty"`
+	Body                 []byte               `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	At                   *timestamp.Timestamp `protobuf:"bytes,4,opt,name=at,proto3" json:"at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *FullFrameBinary) Reset()         { *m = FullFrameBinary{} }
+func (m *FullFrameBinary) String() string { return proto.CompactTextString(m) }
+func (*FullFrameBinary) ProtoMessage()    {}
+func (*FullFrameBinary) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{2}
+}
+
+func (m *FullFrameBinary) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FullFrameBinary.Unmarshal(m, b)
+}
+func (m *FullFrameBinary) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FullFrameBinary.Marshal(b, m, deterministic)
+}
+func (m *FullFrameBinary) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FullFrameBinary.Merge(m, src)
+}
+func (m *FullFrameBinary) XXX_Size() int {
+	return xxx_messageInfo_FullFrameBinary.Size(m)
+}
+func (m *FullFrameBinary) XXX_DiscardUnknown() {
+	xxx_messageInfo_FullFrameBinary.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FullFrameBinary proto.InternalMessageInfo
+
+func (m *FullFrameBinary) GetFragment() uint32 {
+	if m != nil {
+		return m.Fragment
+	}
+	return 0
+}
+
+func (m *FullFrameBinary) GetTick() uint32 {
+	if m != nil {
+		return m.Tick
+	}
+	return 0
+}
+
+func (m *FullFrameBinary) GetBody() []byte {
+	if m != nil {
+		return m.Body
+	}
+	return nil
+}
+
+func (m *FullFrameBinary) GetAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.At
+	}
+	return nil
+}
+
+type DeltaFrameBinary struct {
+	Fragment             uint32   `protobuf:"varint,1,opt,name=fragment,proto3" json:"fragment,omitempty"`
+	Endtick              uint32   `protobuf:"varint,2,opt,name=endtick,proto3" json:"endtick,omitempty"`
+	Body                 []byte   `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeltaFrameBinary) Reset()         { *m = DeltaFrameBinary{} }
+func (m *DeltaFrameBinary) String() string { return proto.CompactTextString(m) }
+func (*DeltaFrameBinary) ProtoMessage()    {}
+func (*DeltaFrameBinary) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{3}
+}
+
+func (m *DeltaFrameBinary) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeltaFrameBinary.Unmarshal(m, b)
+}
+func (m *DeltaFrameBinary) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeltaFrameBinary.Marshal(b, m, deterministic)
+}
+func (m *DeltaFrameBinary) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeltaFrameBinary.Merge(m, src)
+}
+func (m *DeltaFrameBinary) XXX_Size() int {
+	return xxx_messageInfo_DeltaFrameBinary.Size(m)
+}
+func (m *DeltaFrameBinary) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeltaFrameBinary.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeltaFrameBinary proto.InternalMessageInfo
+
+func (m *DeltaFrameBinary) GetFragment() uint32 {
+	if m != nil {
+		return m.Fragment
+	}
+	return 0
+}
+
+func (m *DeltaFrameBinary) GetEndtick() uint32 {
+	if m != nil {
+		return m.Endtick
+	}
+	return 0
+}
+
+func (m *DeltaFrameBinary) GetBody() []byte {
+	if m != nil {
+		return m.Body
+	}
+	return nil
+}
+
 type Match struct {
 	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	Id                   string   `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
@@ -36,7 +321,7 @@ func (m *Match) Reset()         { *m = Match{} }
 func (m *Match) String() string { return proto.CompactTextString(m) }
 func (*Match) ProtoMessage()    {}
 func (*Match) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{0}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{4}
 }
 
 func (m *Match) XXX_Unmarshal(b []byte) error {
@@ -81,7 +366,7 @@ func (m *GetMatchesRequest) Reset()         { *m = GetMatchesRequest{} }
 func (m *GetMatchesRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMatchesRequest) ProtoMessage()    {}
 func (*GetMatchesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{1}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{5}
 }
 
 func (m *GetMatchesRequest) XXX_Unmarshal(b []byte) error {
@@ -115,7 +400,7 @@ func (m *GetMatchesReply) Reset()         { *m = GetMatchesReply{} }
 func (m *GetMatchesReply) String() string { return proto.CompactTextString(m) }
 func (*GetMatchesReply) ProtoMessage()    {}
 func (*GetMatchesReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{2}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{6}
 }
 
 func (m *GetMatchesReply) XXX_Unmarshal(b []byte) error {
@@ -171,7 +456,7 @@ func (m *GetMatchRequest) Reset()         { *m = GetMatchRequest{} }
 func (m *GetMatchRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMatchRequest) ProtoMessage()    {}
 func (*GetMatchRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{3}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{7}
 }
 
 func (m *GetMatchRequest) XXX_Unmarshal(b []byte) error {
@@ -251,7 +536,7 @@ func (m *DeleteMatchRequest) Reset()         { *m = DeleteMatchRequest{} }
 func (m *DeleteMatchRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteMatchRequest) ProtoMessage()    {}
 func (*DeleteMatchRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{4}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{8}
 }
 
 func (m *DeleteMatchRequest) XXX_Unmarshal(b []byte) error {
@@ -329,7 +614,7 @@ func (m *DeleteMatchReply) Reset()         { *m = DeleteMatchReply{} }
 func (m *DeleteMatchReply) String() string { return proto.CompactTextString(m) }
 func (*DeleteMatchReply) ProtoMessage()    {}
 func (*DeleteMatchReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{5}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{9}
 }
 
 func (m *DeleteMatchReply) XXX_Unmarshal(b []byte) error {
@@ -376,7 +661,7 @@ func (m *MarkIDRequest) Reset()         { *m = MarkIDRequest{} }
 func (m *MarkIDRequest) String() string { return proto.CompactTextString(m) }
 func (*MarkIDRequest) ProtoMessage()    {}
 func (*MarkIDRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{6}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{10}
 }
 
 func (m *MarkIDRequest) XXX_Unmarshal(b []byte) error {
@@ -423,7 +708,7 @@ func (m *MarkIDReply) Reset()         { *m = MarkIDReply{} }
 func (m *MarkIDReply) String() string { return proto.CompactTextString(m) }
 func (*MarkIDReply) ProtoMessage()    {}
 func (*MarkIDReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d8a69789a3c4d4fd, []int{7}
+	return fileDescriptor_d8a69789a3c4d4fd, []int{11}
 }
 
 func (m *MarkIDReply) XXX_Unmarshal(b []byte) error {
@@ -458,7 +743,240 @@ func (m *MarkIDReply) GetErrormessage() string {
 	return ""
 }
 
+type SaveMatchToFileRequest struct {
+	// Types that are valid to be assigned to Ids:
+	//	*SaveMatchToFileRequest_Token
+	//	*SaveMatchToFileRequest_Id
+	Ids                  isSaveMatchToFileRequest_Ids `protobuf_oneof:"ids"`
+	Path                 string                       `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
+	XXX_unrecognized     []byte                       `json:"-"`
+	XXX_sizecache        int32                        `json:"-"`
+}
+
+func (m *SaveMatchToFileRequest) Reset()         { *m = SaveMatchToFileRequest{} }
+func (m *SaveMatchToFileRequest) String() string { return proto.CompactTextString(m) }
+func (*SaveMatchToFileRequest) ProtoMessage()    {}
+func (*SaveMatchToFileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{12}
+}
+
+func (m *SaveMatchToFileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SaveMatchToFileRequest.Unmarshal(m, b)
+}
+func (m *SaveMatchToFileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SaveMatchToFileRequest.Marshal(b, m, deterministic)
+}
+func (m *SaveMatchToFileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SaveMatchToFileRequest.Merge(m, src)
+}
+func (m *SaveMatchToFileRequest) XXX_Size() int {
+	return xxx_messageInfo_SaveMatchToFileRequest.Size(m)
+}
+func (m *SaveMatchToFileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SaveMatchToFileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SaveMatchToFileRequest proto.InternalMessageInfo
+
+type isSaveMatchToFileRequest_Ids interface {
+	isSaveMatchToFileRequest_Ids()
+}
+
+type SaveMatchToFileRequest_Token struct {
+	Token string `protobuf:"bytes,1,opt,name=token,proto3,oneof"`
+}
+
+type SaveMatchToFileRequest_Id struct {
+	Id string `protobuf:"bytes,2,opt,name=id,proto3,oneof"`
+}
+
+func (*SaveMatchToFileRequest_Token) isSaveMatchToFileRequest_Ids() {}
+
+func (*SaveMatchToFileRequest_Id) isSaveMatchToFileRequest_Ids() {}
+
+func (m *SaveMatchToFileRequest) GetIds() isSaveMatchToFileRequest_Ids {
+	if m != nil {
+		return m.Ids
+	}
+	return nil
+}
+
+func (m *SaveMatchToFileRequest) GetToken() string {
+	if x, ok := m.GetIds().(*SaveMatchToFileRequest_Token); ok {
+		return x.Token
+	}
+	return ""
+}
+
+func (m *SaveMatchToFileRequest) GetId() string {
+	if x, ok := m.GetIds().(*SaveMatchToFileRequest_Id); ok {
+		return x.Id
+	}
+	return ""
+}
+
+func (m *SaveMatchToFileRequest) GetPath() string {
+	if m != nil {
+		return m.Path
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*SaveMatchToFileRequest) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*SaveMatchToFileRequest_Token)(nil),
+		(*SaveMatchToFileRequest_Id)(nil),
+	}
+}
+
+type SaveMatchToFileReply struct {
+	Error                bool     `protobuf:"varint,1,opt,name=error,proto3" json:"error,omitempty"`
+	Errormessage         string   `protobuf:"bytes,2,opt,name=errormessage,proto3" json:"errormessage,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SaveMatchToFileReply) Reset()         { *m = SaveMatchToFileReply{} }
+func (m *SaveMatchToFileReply) String() string { return proto.CompactTextString(m) }
+func (*SaveMatchToFileReply) ProtoMessage()    {}
+func (*SaveMatchToFileReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{13}
+}
+
+func (m *SaveMatchToFileReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SaveMatchToFileReply.Unmarshal(m, b)
+}
+func (m *SaveMatchToFileReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SaveMatchToFileReply.Marshal(b, m, deterministic)
+}
+func (m *SaveMatchToFileReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SaveMatchToFileReply.Merge(m, src)
+}
+func (m *SaveMatchToFileReply) XXX_Size() int {
+	return xxx_messageInfo_SaveMatchToFileReply.Size(m)
+}
+func (m *SaveMatchToFileReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_SaveMatchToFileReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SaveMatchToFileReply proto.InternalMessageInfo
+
+func (m *SaveMatchToFileReply) GetError() bool {
+	if m != nil {
+		return m.Error
+	}
+	return false
+}
+
+func (m *SaveMatchToFileReply) GetErrormessage() string {
+	if m != nil {
+		return m.Errormessage
+	}
+	return ""
+}
+
+type LoadMatchFromFileRequest struct {
+	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *LoadMatchFromFileRequest) Reset()         { *m = LoadMatchFromFileRequest{} }
+func (m *LoadMatchFromFileRequest) String() string { return proto.CompactTextString(m) }
+func (*LoadMatchFromFileRequest) ProtoMessage()    {}
+func (*LoadMatchFromFileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{14}
+}
+
+func (m *LoadMatchFromFileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LoadMatchFromFileRequest.Unmarshal(m, b)
+}
+func (m *LoadMatchFromFileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LoadMatchFromFileRequest.Marshal(b, m, deterministic)
+}
+func (m *LoadMatchFromFileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LoadMatchFromFileRequest.Merge(m, src)
+}
+func (m *LoadMatchFromFileRequest) XXX_Size() int {
+	return xxx_messageInfo_LoadMatchFromFileRequest.Size(m)
+}
+func (m *LoadMatchFromFileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_LoadMatchFromFileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LoadMatchFromFileRequest proto.InternalMessageInfo
+
+func (m *LoadMatchFromFileRequest) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+type LoadMatchFromFileReply struct {
+	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Error                bool     `protobuf:"varint,2,opt,name=error,proto3" json:"error,omitempty"`
+	Errormessage         string   `protobuf:"bytes,3,opt,name=errormessage,proto3" json:"errormessage,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *LoadMatchFromFileReply) Reset()         { *m = LoadMatchFromFileReply{} }
+func (m *LoadMatchFromFileReply) String() string { return proto.CompactTextString(m) }
+func (*LoadMatchFromFileReply) ProtoMessage()    {}
+func (*LoadMatchFromFileReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d8a69789a3c4d4fd, []int{15}
+}
+
+func (m *LoadMatchFromFileReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LoadMatchFromFileReply.Unmarshal(m, b)
+}
+func (m *LoadMatchFromFileReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LoadMatchFromFileReply.Marshal(b, m, deterministic)
+}
+func (m *LoadMatchFromFileReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LoadMatchFromFileReply.Merge(m, src)
+}
+func (m *LoadMatchFromFileReply) XXX_Size() int {
+	return xxx_messageInfo_LoadMatchFromFileReply.Size(m)
+}
+func (m *LoadMatchFromFileReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_LoadMatchFromFileReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LoadMatchFromFileReply proto.InternalMessageInfo
+
+func (m *LoadMatchFromFileReply) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *LoadMatchFromFileReply) GetError() bool {
+	if m != nil {
+		return m.Error
+	}
+	return false
+}
+
+func (m *LoadMatchFromFileReply) GetErrormessage() string {
+	if m != nil {
+		return m.Errormessage
+	}
+	return ""
+}
+
 func init() {
+	proto.RegisterType((*MatchBinary)(nil), "GOTV_PLUS.MatchBinary")
+	proto.RegisterType((*StartFrameBinary)(nil), "GOTV_PLUS.StartFrameBinary")
+	proto.RegisterType((*FullFrameBinary)(nil), "GOTV_PLUS.FullFrameBinary")
+	proto.RegisterType((*DeltaFrameBinary)(nil), "GOTV_PLUS.DeltaFrameBinary")
 	proto.RegisterType((*Match)(nil), "GOTV_PLUS.Match")
 	proto.RegisterType((*GetMatchesRequest)(nil), "GOTV_PLUS.GetMatchesRequest")
 	proto.RegisterType((*GetMatchesReply)(nil), "GOTV_PLUS.GetMatchesReply")
@@ -467,34 +985,60 @@ func init() {
 	proto.RegisterType((*DeleteMatchReply)(nil), "GOTV_PLUS.DeleteMatchReply")
 	proto.RegisterType((*MarkIDRequest)(nil), "GOTV_PLUS.MarkIDRequest")
 	proto.RegisterType((*MarkIDReply)(nil), "GOTV_PLUS.MarkIDReply")
+	proto.RegisterType((*SaveMatchToFileRequest)(nil), "GOTV_PLUS.SaveMatchToFileRequest")
+	proto.RegisterType((*SaveMatchToFileReply)(nil), "GOTV_PLUS.SaveMatchToFileReply")
+	proto.RegisterType((*LoadMatchFromFileRequest)(nil), "GOTV_PLUS.LoadMatchFromFileRequest")
+	proto.RegisterType((*LoadMatchFromFileReply)(nil), "GOTV_PLUS.LoadMatchFromFileReply")
 }
 
 func init() { proto.RegisterFile("gotv_plus.proto", fileDescriptor_d8a69789a3c4d4fd) }
 
 var fileDescriptor_d8a69789a3c4d4fd = []byte{
-	// 340 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0x4d, 0x4b, 0xc3, 0x40,
-	0x10, 0x4d, 0x52, 0x52, 0xda, 0xa9, 0xda, 0x3a, 0x4a, 0x09, 0x51, 0xa1, 0xec, 0x41, 0x7a, 0xb1,
-	0x87, 0x8a, 0x17, 0xf1, 0x54, 0x2a, 0x89, 0xd8, 0xa2, 0xc4, 0x8f, 0x6b, 0x89, 0x66, 0xa9, 0xa1,
-	0xa9, 0x89, 0xd9, 0x8d, 0xd0, 0xff, 0xe2, 0x8f, 0x95, 0x6c, 0x9a, 0x26, 0x21, 0xa9, 0x08, 0xbd,
-	0xed, 0x7c, 0xbe, 0x79, 0xf3, 0x66, 0xa1, 0x3d, 0xf7, 0xf9, 0xf7, 0x2c, 0xf0, 0x22, 0x36, 0x08,
-	0x42, 0x9f, 0xfb, 0xd8, 0x34, 0x1e, 0x9e, 0x5f, 0x67, 0x8f, 0x93, 0x97, 0x27, 0x72, 0x01, 0xea,
-	0xd4, 0xe6, 0xef, 0x1f, 0x78, 0x0c, 0x2a, 0xf7, 0x17, 0xf4, 0x53, 0x93, 0x7b, 0x72, 0xbf, 0x69,
-	0x25, 0x06, 0x1e, 0x80, 0xe2, 0x3a, 0x9a, 0x22, 0x5c, 0x8a, 0xeb, 0x90, 0x23, 0x38, 0x34, 0x28,
-	0x17, 0x15, 0x94, 0x59, 0xf4, 0x2b, 0xa2, 0x8c, 0x13, 0x06, 0xed, 0xbc, 0x33, 0xf0, 0x56, 0x78,
-	0x0e, 0xea, 0x32, 0xb6, 0x35, 0xb9, 0x57, 0xeb, 0xb7, 0x86, 0x9d, 0xc1, 0x06, 0x71, 0x20, 0xf2,
-	0xac, 0x24, 0x1c, 0xa3, 0xd2, 0x30, 0xf4, 0x43, 0x01, 0xd1, 0xb0, 0x12, 0x03, 0x09, 0xec, 0x89,
-	0xc7, 0x92, 0x32, 0x66, 0xcf, 0xa9, 0x56, 0x13, 0xf8, 0x05, 0x1f, 0x19, 0x65, 0xa0, 0xeb, 0x39,
-	0xb0, 0x5b, 0xa0, 0x60, 0x4a, 0x29, 0x89, 0x4e, 0x46, 0xc2, 0x94, 0x62, 0x1a, 0x23, 0x15, 0x6a,
-	0xae, 0xc3, 0xc8, 0x2d, 0xe0, 0x98, 0x7a, 0x94, 0xd3, 0xdd, 0xda, 0x4c, 0xa0, 0x53, 0x68, 0x13,
-	0x2f, 0x60, 0x43, 0x4c, 0xfe, 0x8b, 0x98, 0x52, 0x41, 0xec, 0x0a, 0xf6, 0xa7, 0x76, 0xb8, 0xb8,
-	0x1b, 0xa7, 0xf3, 0xfc, 0x4f, 0x19, 0x03, 0x5a, 0x69, 0xd9, 0x4e, 0xf8, 0xc3, 0x1f, 0x05, 0xd6,
-	0xf7, 0xe1, 0x45, 0x0c, 0x4d, 0x80, 0x4c, 0x5b, 0x3c, 0xcd, 0xe9, 0x58, 0xba, 0x03, 0x5d, 0xdf,
-	0x12, 0x0d, 0xbc, 0x15, 0x91, 0xf0, 0x1a, 0x1a, 0xa9, 0x13, 0xab, 0x32, 0xd3, 0x2e, 0xa5, 0x5b,
-	0x21, 0x12, 0xde, 0x43, 0x2b, 0xb7, 0x61, 0x3c, 0xcb, 0xa5, 0x94, 0x05, 0xd4, 0x4f, 0xb6, 0x85,
-	0x93, 0x41, 0x6e, 0xa0, 0x9e, 0x6c, 0x0a, 0xb5, 0x02, 0x54, 0x6e, 0xe7, 0x7a, 0xb7, 0x22, 0x22,
-	0xaa, 0xdf, 0xea, 0xe2, 0x0b, 0x5d, 0xfe, 0x06, 0x00, 0x00, 0xff, 0xff, 0xeb, 0x44, 0x63, 0x78,
-	0x55, 0x03, 0x00, 0x00,
+	// 697 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x55, 0x6d, 0x4f, 0xd3, 0x50,
+	0x14, 0x5e, 0xbb, 0x17, 0xd8, 0xe1, 0x65, 0xe3, 0x48, 0x96, 0xa6, 0x68, 0x18, 0xd7, 0x44, 0x17,
+	0x13, 0x87, 0xc1, 0x98, 0x18, 0xf5, 0x13, 0xc1, 0x81, 0x11, 0x22, 0x29, 0xa8, 0x5f, 0x24, 0xe4,
+	0xc2, 0x2e, 0xa3, 0xa1, 0xdd, 0xad, 0xed, 0x1d, 0xc9, 0x3e, 0xfa, 0x0f, 0xfc, 0x4d, 0xfe, 0x06,
+	0x7f, 0x90, 0xb9, 0xf7, 0xae, 0x6b, 0xb7, 0x96, 0x05, 0xdc, 0xb7, 0xf3, 0x7e, 0x9e, 0x73, 0xce,
+	0x73, 0x5b, 0xa8, 0xf5, 0xb8, 0xb8, 0x3d, 0x0f, 0xbc, 0x41, 0xd4, 0x0e, 0x42, 0x2e, 0x38, 0x56,
+	0xf7, 0xbf, 0x9c, 0x7e, 0x3b, 0x3f, 0x3e, 0xfc, 0x7a, 0x62, 0x6f, 0xf6, 0x38, 0xef, 0x79, 0x6c,
+	0x5b, 0x39, 0x2e, 0x06, 0x57, 0xdb, 0xc2, 0xf5, 0x59, 0x24, 0xa8, 0x1f, 0xe8, 0x58, 0xf2, 0xdb,
+	0x84, 0xa5, 0x23, 0x2a, 0x2e, 0xaf, 0x77, 0xdd, 0x3e, 0x0d, 0x87, 0xb8, 0x0e, 0x65, 0xc1, 0x6f,
+	0x58, 0xdf, 0x32, 0x9a, 0x46, 0xab, 0xea, 0x68, 0x05, 0x57, 0xc1, 0x74, 0xbb, 0x96, 0xa9, 0x4c,
+	0xa6, 0xdb, 0xc5, 0xe7, 0x50, 0x8b, 0xdc, 0x5e, 0x7f, 0x10, 0x9c, 0x5f, 0x85, 0xb4, 0xe7, 0xb3,
+	0xbe, 0xb0, 0x8a, 0x4d, 0xa3, 0xb5, 0xe2, 0xac, 0x6a, 0x73, 0x67, 0x64, 0xc5, 0xf7, 0x00, 0x27,
+	0x82, 0x86, 0xa2, 0x13, 0x52, 0x9f, 0x59, 0xa5, 0x66, 0xb1, 0xb5, 0xb4, 0xb3, 0xd1, 0x1e, 0xe3,
+	0x6b, 0x27, 0x4e, 0xdd, 0xdf, 0x49, 0x85, 0xe3, 0x5b, 0xa8, 0x76, 0x06, 0x9e, 0xa7, 0x73, 0xcb,
+	0x2a, 0xd7, 0x4e, 0xe5, 0x8e, 0x7d, 0xa3, 0xd4, 0x24, 0x58, 0xb6, 0xdd, 0x63, 0x9e, 0xa0, 0x3a,
+	0xb5, 0x92, 0x69, 0x9b, 0x38, 0xe3, 0xb6, 0x89, 0x85, 0xfc, 0x31, 0xa0, 0x3e, 0x8d, 0x0b, 0x6d,
+	0x58, 0x1c, 0x8f, 0x6a, 0xa8, 0x51, 0xc7, 0x3a, 0x22, 0x94, 0x84, 0x7b, 0x79, 0xa3, 0xf6, 0xb3,
+	0xe2, 0x28, 0x19, 0xeb, 0x50, 0x14, 0x41, 0xa4, 0xb6, 0x62, 0x38, 0x52, 0x94, 0x16, 0x9f, 0x06,
+	0x56, 0x49, 0x2d, 0x51, 0x8a, 0xb2, 0xa6, 0x3a, 0xc2, 0x25, 0xf7, 0xac, 0xb2, 0xae, 0x19, 0xeb,
+	0xb2, 0xe6, 0x05, 0xef, 0x0e, 0xad, 0x4a, 0xd3, 0x68, 0x2d, 0x3b, 0x4a, 0xc6, 0x17, 0x60, 0x52,
+	0x61, 0x2d, 0x34, 0x0d, 0xb5, 0x08, 0x7d, 0xd9, 0x76, 0x7c, 0xd9, 0xf6, 0x69, 0x7c, 0x59, 0xc7,
+	0xa4, 0x82, 0xfc, 0x32, 0xa0, 0x36, 0xb5, 0xa0, 0x07, 0xcf, 0x10, 0x63, 0x28, 0x66, 0x30, 0x94,
+	0xee, 0x85, 0xe1, 0x07, 0xd4, 0xa7, 0x17, 0x3d, 0x13, 0x83, 0x05, 0x0b, 0xac, 0xdf, 0x4d, 0xc1,
+	0x88, 0xd5, 0x3c, 0x24, 0xe4, 0x25, 0x94, 0x15, 0x71, 0xef, 0x47, 0x59, 0xf2, 0x08, 0xd6, 0xf6,
+	0x99, 0x50, 0x19, 0x2c, 0x72, 0xd8, 0xcf, 0x01, 0x8b, 0x04, 0x89, 0xa0, 0x96, 0x36, 0x06, 0xde,
+	0x10, 0x9f, 0x41, 0xd9, 0x97, 0xba, 0x65, 0x28, 0xd6, 0xd4, 0x53, 0xac, 0x51, 0x71, 0x8e, 0x76,
+	0xcb, 0xae, 0x2c, 0x0c, 0x79, 0xa8, 0x5a, 0x2c, 0x3a, 0x5a, 0x41, 0x02, 0xcb, 0x4a, 0xf0, 0x59,
+	0x14, 0xd1, 0x1e, 0x53, 0x80, 0xab, 0xce, 0x84, 0x8d, 0xec, 0x26, 0x4d, 0x47, 0x38, 0xb0, 0x31,
+	0x31, 0xc2, 0x41, 0x21, 0x1e, 0xa2, 0x9e, 0x0c, 0x71, 0x50, 0x90, 0x63, 0xec, 0x96, 0xa1, 0xe8,
+	0x76, 0x23, 0xf2, 0x11, 0x70, 0x8f, 0x79, 0x4c, 0xb0, 0xf9, 0xca, 0x1c, 0xaa, 0x0b, 0x25, 0x65,
+	0xe4, 0x02, 0xc6, 0x83, 0x19, 0xb3, 0x06, 0x33, 0x73, 0x06, 0x7b, 0x03, 0x2b, 0x47, 0x34, 0xbc,
+	0xf9, 0xb4, 0x17, 0xe3, 0xb9, 0xdf, 0x65, 0xf6, 0xe5, 0x17, 0x48, 0xa7, 0xcd, 0xd7, 0xff, 0x0c,
+	0x1a, 0x27, 0xf4, 0x56, 0xcf, 0x72, 0xca, 0x3b, 0xae, 0xc7, 0x1e, 0xbc, 0x18, 0xc9, 0xb4, 0x80,
+	0x8a, 0xeb, 0xd1, 0xe1, 0x94, 0x1c, 0x2f, 0xeb, 0x18, 0xd6, 0x33, 0xe5, 0xe7, 0x03, 0xfc, 0x0a,
+	0xac, 0x43, 0x4e, 0xbb, 0xaa, 0x62, 0x27, 0xe4, 0x7e, 0x1a, 0x72, 0xee, 0xee, 0xc8, 0x35, 0x34,
+	0x72, 0x32, 0x46, 0x28, 0x72, 0x76, 0xfd, 0xdf, 0x2c, 0xdd, 0xf9, 0x5b, 0x84, 0xd1, 0x7f, 0xc4,
+	0x1b, 0x44, 0x78, 0x00, 0x90, 0x3c, 0x14, 0x7c, 0x9c, 0x7a, 0x14, 0x99, 0x47, 0x65, 0xdb, 0x77,
+	0x78, 0x03, 0x6f, 0x48, 0x0a, 0xf8, 0x0e, 0x16, 0x63, 0x23, 0xe6, 0x45, 0xc6, 0x55, 0x32, 0x0f,
+	0x8f, 0x14, 0xf0, 0x33, 0x2c, 0xa5, 0xe8, 0x8a, 0x4f, 0x26, 0xbf, 0xe8, 0x53, 0xaf, 0xc1, 0xde,
+	0xb8, 0xcb, 0xad, 0x81, 0x7c, 0x80, 0x8a, 0xa6, 0x1d, 0x5a, 0x13, 0xad, 0x52, 0x04, 0xb6, 0x1b,
+	0x39, 0x1e, 0x9d, 0xfd, 0x1d, 0x6a, 0x53, 0x64, 0xc0, 0xad, 0xf4, 0x7f, 0x2d, 0x97, 0x87, 0xf6,
+	0xe6, 0xac, 0x10, 0x5d, 0xf8, 0x0c, 0xd6, 0x32, 0x17, 0xc6, 0xa7, 0xa9, 0xbc, 0xbb, 0x18, 0x63,
+	0x6f, 0xcd, 0x0e, 0x52, 0xe5, 0x2f, 0x2a, 0xea, 0x5b, 0xfd, 0xfa, 0x5f, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0x07, 0x59, 0xee, 0xf7, 0x35, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -513,6 +1057,8 @@ type GOTV_PlusClient interface {
 	GetMatch(ctx context.Context, in *GetMatchRequest, opts ...grpc.CallOption) (*Match, error)
 	DeleteMatch(ctx context.Context, in *DeleteMatchRequest, opts ...grpc.CallOption) (*DeleteMatchReply, error)
 	MarkID(ctx context.Context, in *MarkIDRequest, opts ...grpc.CallOption) (*MarkIDReply, error)
+	SaveMatchToFile(ctx context.Context, in *SaveMatchToFileRequest, opts ...grpc.CallOption) (*SaveMatchToFileReply, error)
+	LoadMatchFromFile(ctx context.Context, in *LoadMatchFromFileRequest, opts ...grpc.CallOption) (*LoadMatchFromFileReply, error)
 }
 
 type gOTV_PlusClient struct {
@@ -559,12 +1105,32 @@ func (c *gOTV_PlusClient) MarkID(ctx context.Context, in *MarkIDRequest, opts ..
 	return out, nil
 }
 
+func (c *gOTV_PlusClient) SaveMatchToFile(ctx context.Context, in *SaveMatchToFileRequest, opts ...grpc.CallOption) (*SaveMatchToFileReply, error) {
+	out := new(SaveMatchToFileReply)
+	err := c.cc.Invoke(ctx, "/GOTV_PLUS.GOTV_Plus/SaveMatchToFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gOTV_PlusClient) LoadMatchFromFile(ctx context.Context, in *LoadMatchFromFileRequest, opts ...grpc.CallOption) (*LoadMatchFromFileReply, error) {
+	out := new(LoadMatchFromFileReply)
+	err := c.cc.Invoke(ctx, "/GOTV_PLUS.GOTV_Plus/LoadMatchFromFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GOTV_PlusServer is the server API for GOTV_Plus service.
 type GOTV_PlusServer interface {
 	GetMatches(context.Context, *GetMatchesRequest) (*GetMatchesReply, error)
 	GetMatch(context.Context, *GetMatchRequest) (*Match, error)
 	DeleteMatch(context.Context, *DeleteMatchRequest) (*DeleteMatchReply, error)
 	MarkID(context.Context, *MarkIDRequest) (*MarkIDReply, error)
+	SaveMatchToFile(context.Context, *SaveMatchToFileRequest) (*SaveMatchToFileReply, error)
+	LoadMatchFromFile(context.Context, *LoadMatchFromFileRequest) (*LoadMatchFromFileReply, error)
 }
 
 // UnimplementedGOTV_PlusServer can be embedded to have forward compatible implementations.
@@ -582,6 +1148,12 @@ func (*UnimplementedGOTV_PlusServer) DeleteMatch(ctx context.Context, req *Delet
 }
 func (*UnimplementedGOTV_PlusServer) MarkID(ctx context.Context, req *MarkIDRequest) (*MarkIDReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MarkID not implemented")
+}
+func (*UnimplementedGOTV_PlusServer) SaveMatchToFile(ctx context.Context, req *SaveMatchToFileRequest) (*SaveMatchToFileReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveMatchToFile not implemented")
+}
+func (*UnimplementedGOTV_PlusServer) LoadMatchFromFile(ctx context.Context, req *LoadMatchFromFileRequest) (*LoadMatchFromFileReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoadMatchFromFile not implemented")
 }
 
 func RegisterGOTV_PlusServer(s *grpc.Server, srv GOTV_PlusServer) {
@@ -660,6 +1232,42 @@ func _GOTV_Plus_MarkID_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GOTV_Plus_SaveMatchToFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveMatchToFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GOTV_PlusServer).SaveMatchToFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/GOTV_PLUS.GOTV_Plus/SaveMatchToFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GOTV_PlusServer).SaveMatchToFile(ctx, req.(*SaveMatchToFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GOTV_Plus_LoadMatchFromFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoadMatchFromFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GOTV_PlusServer).LoadMatchFromFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/GOTV_PLUS.GOTV_Plus/LoadMatchFromFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GOTV_PlusServer).LoadMatchFromFile(ctx, req.(*LoadMatchFromFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _GOTV_Plus_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "GOTV_PLUS.GOTV_Plus",
 	HandlerType: (*GOTV_PlusServer)(nil),
@@ -679,6 +1287,14 @@ var _GOTV_Plus_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MarkID",
 			Handler:    _GOTV_Plus_MarkID_Handler,
+		},
+		{
+			MethodName: "SaveMatchToFile",
+			Handler:    _GOTV_Plus_SaveMatchToFile_Handler,
+		},
+		{
+			MethodName: "LoadMatchFromFile",
+			Handler:    _GOTV_Plus_LoadMatchFromFile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -14,3 +14,5 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 server/server_linux_amd64
+*.tar
+*.gz

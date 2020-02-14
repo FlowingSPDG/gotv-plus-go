@@ -1,11 +1,48 @@
 syntax = 'proto3';
 package GOTV_PLUS;
 
+
+import "google/protobuf/timestamp.proto";
+
 service GOTV_Plus {
   rpc GetMatches(GetMatchesRequest) returns (GetMatchesReply) {}
   rpc GetMatch(GetMatchRequest) returns (Match) {}
   rpc DeleteMatch(DeleteMatchRequest) returns (DeleteMatchReply) {}
   rpc MarkID(MarkIDRequest) returns (MarkIDReply) {}
+  rpc SaveMatchToFile(SaveMatchToFileRequest) returns (SaveMatchToFileReply) {}
+  rpc LoadMatchFromFile(LoadMatchFromFileRequest) returns (LoadMatchFromFileReply) {}
+}
+
+message MatchBinary {
+  string token = 1;
+  string id = 2;
+  uint32 signup_fragment = 3;
+  repeated StartFrameBinary StartFrame = 4;
+  repeated FullFrameBinary FullFrame = 5;
+  repeated DeltaFrameBinary DeltaFrame = 6;
+}
+
+message StartFrameBinary {
+  uint32 fragment = 1;
+  uint32 tick = 2;
+  double tps = 3;
+  string map = 4;
+  uint32 protocol = 5;
+  bytes body = 6;
+  google.protobuf.Timestamp at = 7;
+}
+
+message FullFrameBinary {
+  uint32 fragment = 1;
+  uint32 tick = 2;
+  bytes body = 3;
+  google.protobuf.Timestamp at = 4;
+}
+
+message DeltaFrameBinary {
+  uint32 fragment = 1;
+  uint32 endtick = 2;
+  bytes body = 3;
 }
 
 message Match {
@@ -51,4 +88,27 @@ message MarkIDRequest {
 message MarkIDReply {
   bool error = 1;
   string errormessage = 2;
+}
+
+message SaveMatchToFileRequest {
+  oneof ids {
+    string token = 1;
+    string id = 2;
+  }
+  string path = 3;
+}
+
+message SaveMatchToFileReply {
+  bool error = 1;
+  string errormessage = 2;
+}
+
+message LoadMatchFromFileRequest {
+  string token = 1;
+}
+
+message LoadMatchFromFileReply {
+  string token = 1;
+  bool error = 2;
+  string errormessage = 3;
 }
