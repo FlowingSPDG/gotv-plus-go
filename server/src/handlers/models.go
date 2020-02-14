@@ -1,15 +1,15 @@
 package handlers
 
 import (
-	"archive/tar"
 	"compress/gzip"
 	"fmt"
-	"io"
+	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
 	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -123,92 +123,67 @@ func (m *Match) TagID(id string) error {
 	return nil
 }
 
-func (m *Match) SaveMatchToFile(path string) error {
+func (m *Match) SaveMatchToFile(filename string) error {
 	log.Printf("Saving match %s to file...\n", m.Token)
 
-	log.Println("Writing start fragmnets...")
-	startfile, err := os.Create(fmt.Sprintf("%s/%s_start.tar.gz", path, m.Token))
+	file, err := os.Create(fmt.Sprintf("matches/%s.gz", filename))
 	if err != nil {
 		return err
 	}
-	defer startfile.Close()
+	defer file.Close()
 
-	StartgzipReader := gzip.NewWriter(startfile)
-	defer StartgzipReader.Close()
-
-	starttw := tar.NewWriter(StartgzipReader)
-	defer starttw.Close()
-
+	binary := &pb.MatchBinary{
+		Id:             m.ID,
+		Token:          m.Token,
+		SignupFragment: m.SignupFragment,
+		StartFrame:     make([]*pb.StartFrameBinary, 0, len(m.Startframe)),
+		FullFrame:      make([]*pb.FullFrameBinary, 0, len(m.Fullframes)),
+		DeltaFrame:     make([]*pb.DeltaFrameBinary, 0, len(m.Deltaframes)),
+	}
 	for k, v := range m.Startframe {
-		// Header info
-		StartHeader := &tar.Header{
-			Name: fmt.Sprintf("%d", k),
-			Size: int64(len(v.Body)),
-		}
-		// Write header
-		if err := starttw.WriteHeader(StartHeader); err != nil {
-			return err
-		}
-		// Write fragments
-		if _, err := starttw.Write(v.Body); err != nil {
-			return err
-		}
+		t, _ := ptypes.TimestampProto(v.At)
+		binary.StartFrame = append(binary.StartFrame, &pb.StartFrameBinary{
+			Fragment: k,
+			Tick:     m.Tick,
+			Tps:      m.Tps,
+			Map:      m.Map,
+			Protocol: uint32(m.Protocol),
+			Body:     v.Body,
+			At:       t,
+		})
 	}
 
-	log.Println("Writing full fragmnets...")
-	fullfile, err := os.Create(fmt.Sprintf("%s/%s_full.tar.gz", path, m.Token))
-	if err != nil {
-		return err
-	}
-	defer fullfile.Close()
-	fullgzipReader := gzip.NewWriter(fullfile)
-	defer fullgzipReader.Close()
-	fulltw := tar.NewWriter(fullgzipReader)
-	defer fulltw.Close()
-
-	// Write fragments
 	for k, v := range m.Fullframes {
-		// Header info
-		FullHeader := &tar.Header{
-			Name: fmt.Sprintf("%d", k),
-			Size: int64(len(v.Body)),
-		}
-		// Write header
-		if err := fulltw.WriteHeader(FullHeader); err != nil {
-			return err
-		}
-		if _, err := fulltw.Write(v.Body); err != nil {
-			return err
-		}
+		t, _ := ptypes.TimestampProto(v.At)
+		binary.FullFrame = append(binary.FullFrame, &pb.FullFrameBinary{
+			Fragment: k,
+			Tick:     m.Tick,
+			Body:     v.Body,
+			At:       t,
+		})
 	}
 
-	log.Println("Writing delta fragmnets...")
-	deltafile, err := os.Create(fmt.Sprintf("%s/%s_delta.tar.gz", path, m.Token))
+	for k, v := range m.Deltaframes {
+		binary.DeltaFrame = append(binary.DeltaFrame, &pb.DeltaFrameBinary{
+			Fragment: k,
+			Endtick:  uint32(v.EndTick),
+			Body:     v.Body,
+		})
+	}
+
+	data, err := proto.Marshal(binary)
 	if err != nil {
 		return err
 	}
-	defer deltafile.Close()
-	deltagzipReader := gzip.NewWriter(deltafile)
-	defer deltagzipReader.Close()
-	deltatw := tar.NewWriter(deltagzipReader)
-	defer deltatw.Close()
-
-	// Write fragments
-	for k, v := range m.Deltaframes {
-		// Header info
-		DeltaHeader := &tar.Header{
-			Name: fmt.Sprintf("%d", k),
-			Size: int64(len(v.Body)),
-		}
-		// Write header
-		if err := deltatw.WriteHeader(DeltaHeader); err != nil {
-			return err
-		}
-		if _, err := deltatw.Write(v.Body); err != nil {
-			return err
-		}
+	gzipwriter := gzip.NewWriter(file)
+	defer gzipwriter.Close()
+	totalbytes, err := gzipwriter.Write(data)
+	if err != nil {
+		return err
 	}
+	log.Printf("Writed to %s. %dbytes\n", file.Name(), totalbytes)
 	return nil
+
 }
 
 type MatchesEngine struct {
@@ -228,139 +203,67 @@ func (m *MatchesEngine) Register(ms *Match) {
 }
 
 func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
+	log.Printf("Loading match from %s\n", path)
 	if m.Matches == nil {
 		m.Matches = make(map[string]*Match)
 	}
+
+	file, err := os.Open(fmt.Sprintf("matches/%s.gz", path))
+	if err != nil {
+		return "", err
+	}
+	gzipreader, err := gzip.NewReader(file)
+	if err != nil {
+		return "", err
+	}
+	buf := &pb.MatchBinary{}
+	bytes, err := ioutil.ReadAll(gzipreader)
+	if err != nil {
+		return "", err
+	}
+	err = proto.Unmarshal(bytes, buf)
+
 	match := &Match{
-		Token:       path,
-		Startframe:  make(map[uint32]*Startframe),
-		Fullframes:  make(map[uint32]*Fullframe),
-		Deltaframes: make(map[uint32]*Deltaframes),
-		Tps:         32,         // TODO...
-		Map:         "de_dust2", // TODO...
-		Protocol:    uint8(4),   // TODO...
-		Auth:        "",         // TODO...
-		Tick:        uint32(0),  // TODO...
-		Fragment:    9999,
+		ID:             buf.Id,
+		Token:          buf.Token,
+		Startframe:     make(map[uint32]*Startframe),
+		Fullframes:     make(map[uint32]*Fullframe),
+		Deltaframes:    make(map[uint32]*Deltaframes),
+		Tps:            buf.StartFrame[0].Tps,
+		Map:            buf.StartFrame[0].Map,
+		Protocol:       uint8(buf.StartFrame[0].Protocol),
+		Auth:           "", // TODO
+		Tick:           buf.StartFrame[0].Tick,
+		SignupFragment: buf.SignupFragment,
+		// Fragment:       buf.FullFrame[0].Fragment, // TODO?
+	}
+	for k, v := range buf.StartFrame {
+		t, _ := ptypes.Timestamp(v.At)
+		match.Startframe[uint32(k)] = &Startframe{
+			At:   t,
+			Body: v.Body,
+		}
 	}
 
-	startpath := fmt.Sprintf("matches/%s_start.tar.gz", path)
-	fullpath := fmt.Sprintf("matches/%s_full.tar.gz", path)
-	deltapath := fmt.Sprintf("matches/%s_delta.tar.gz", path)
-
-	startfile, err := os.Open(startpath)
-	if err != nil {
-		return "", err
-	}
-	defer startfile.Close()
-	startgzipreader, err := gzip.NewReader(startfile)
-	if err != nil {
-		return "", err
-	}
-	defer startgzipreader.Close()
-	starttarballreader := tar.NewReader(startgzipreader)
-	for {
-		Header, err := starttarballreader.Next()
-		if err == io.EOF {
-			break
+	for k, v := range buf.FullFrame {
+		t, _ := ptypes.Timestamp(v.At)
+		match.Fullframes[uint32(k)] = &Fullframe{
+			At:   t,
+			Tick: int(v.Tick),
+			Body: v.Body,
 		}
-		if err != nil {
-			return "", err
-		}
-		fragment, err := strconv.Atoi(Header.Name)
-		if err != nil {
-			return "", err
-		}
-		bin, err := ioutil.ReadAll(starttarballreader)
-		if err != nil {
-			return "", err
-		}
-		match.RegisterStartFrame(uint32(fragment), &Startframe{
-			At:   time.Now(),
-			Body: bin,
-		})
-		match.SignupFragment = uint32(fragment)
-		log.Printf("READ START FRAGMENT %s in file %s. %d bytes\n", Header.Name, startpath, Header.Size)
 	}
 
-	fullfile, err := os.Open(fullpath)
-	if err != nil {
-		return "", err
-	}
-	defer fullfile.Close()
-	fullgzipreader, err := gzip.NewReader(fullfile)
-	if err != nil {
-		return "", err
-	}
-	defer fullgzipreader.Close()
-	fulltarballreader := tar.NewReader(fullgzipreader)
-	for {
-		Header, err := fulltarballreader.Next()
-		if err == io.EOF {
-			break
+	for k, v := range buf.DeltaFrame {
+		match.Deltaframes[uint32(k)] = &Deltaframes{
+			EndTick: int(v.Endtick),
+			Body:    v.Body,
 		}
-		if err != nil {
-			return "", err
-		}
-		fragment, err := strconv.Atoi(Header.Name)
-		if err != nil {
-			return "", err
-		}
-		bin, err := ioutil.ReadAll(fulltarballreader)
-		if err != nil {
-			return "", err
-		}
-		match.RegisterFullFrame(uint32(fragment), &Fullframe{
-			At:   time.Now(),
-			Body: bin,
-			Tick: 1,
-		})
-		if fragment < int(match.Fragment) {
-			err = match.UpdateFragment(uint32(fragment))
-			if err != nil {
-				return "", err
-			}
-		}
-		log.Printf("READ FULL FRAGMENT %s in file %s. %d bytes\n", Header.Name, fullpath, Header.Size)
-	}
-
-	deltafile, err := os.Open(deltapath)
-	if err != nil {
-		return "", err
-	}
-	defer deltafile.Close()
-	deltagzipreader, err := gzip.NewReader(deltafile)
-	if err != nil {
-		return "", err
-	}
-	defer deltagzipreader.Close()
-	deltatarballreader := tar.NewReader(deltagzipreader)
-	for {
-		Header, err := deltatarballreader.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return "", err
-		}
-		fragment, err := strconv.Atoi(Header.Name)
-		if err != nil {
-			return "", err
-		}
-		bin, err := ioutil.ReadAll(deltatarballreader)
-		if err != nil {
-			return "", err
-		}
-		match.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
-			Body:    bin,
-			EndTick: 0,
-		})
-		log.Printf("READ DELTA FRAGMENT %s in file %s. %d bytes\n", Header.Name, deltapath, Header.Size)
 	}
 
 	Matches.Register(match)
 
-	return path, nil
+	return match.ID, nil
 }
 
 func (m *MatchesEngine) Delete(ms *Match) error {
