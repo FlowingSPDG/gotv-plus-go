@@ -279,6 +279,7 @@ func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 			At:   time.Now(),
 			Body: bin,
 		})
+		match.SignupFragment = uint32(fragment)
 		log.Printf("READ START FRAGMENT %s in file %s. %d bytes\n", Header.Name, startpath, Header.Size)
 	}
 
