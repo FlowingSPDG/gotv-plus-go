@@ -17,12 +17,20 @@ Basically this is same with [kunalpowar/csgo-broadacst](https://github.com/kunal
 - Launch GOTV+ Server(`go run ./main.go -addr YOURGLOBALIP:8080 -auth gopher`) or binary file : (`./gotv_plus -addr YOURGLOBALIP:8080 -auth gopher`)
 - Enable GOTV broadcast in CS:GO Server
 (`tv_enable 1;tv_broadcast_url "http://YOURGLOBALIP:8080/id/YOUR_MATCH_ID"; tv_broadcast_origin_auth "gopher"; tv_broadcast 1`)
-- Play broadcast by CS:GO Client(`playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID`)
+- Play broadcast by CS:GO Client(`playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID"`)
 ### Tips
 - You can get list of matches by http://localhost:8080/ .
 - You should configure `tv_broadcast_...` cvars **before** enable broadcast(`tv_broadcast 1`). And you may need to restart broadcast if you changed cvars.(`tv_broadcast 0;tv_broadcast 1`)
 - `playcast` and `tv_broadcast_url` URL needs to be wrapped by double quotes (e.g. `playcast "http://example.com/match/MATCH_ID"` .) because of `http:` colon(`:`) is recognized as command seprator for CS:GO.
 - `playcast` and `tv_broadcast_url` does not need slash(`/`) in last character of URL. for example `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID` works properly,however, `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/` **WILL NOT** work properly. because requested URL will be `http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID//sync` (Double-slash).
+
+## Hidden Options
+There are several hidden options that is not on document. I haven't covored all of these options,but some of them are supported.  
+- "F" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" f500`) will play match from `500` fragment. CS:GO client will send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync?fragment=500 .
+- "A" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" a`) will play match from `1` fragment. CS:GO client will send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync?fragment=1 .
+- "C" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" c`) will play match from `1` fragment. CS:GO client **WILL NOT** send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync . CS:GO client will get 1st fragment directly.
+- "B" Option / Unknown
+
 
 ## Features
 - Multi matches Support
