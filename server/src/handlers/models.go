@@ -203,7 +203,6 @@ func (m *MatchesEngine) Register(ms *Match) {
 }
 
 func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
-	log.Printf("Loading match from %s\n", path)
 	if m.Matches == nil {
 		m.Matches = make(map[string]*Match)
 	}
@@ -234,35 +233,43 @@ func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 		Protocol:       uint8(buf.StartFrame[0].Protocol),
 		Auth:           "", // TODO
 		Tick:           buf.StartFrame[0].Tick,
-		SignupFragment: buf.SignupFragment,
-		// Fragment:       buf.FullFrame[0].Fragment, // TODO?
+		SignupFragment: buf.StartFrame[0].Fragment,
+		Fragment:       buf.FullFrame[0].Fragment, // TODO?
 	}
-	for k, v := range buf.StartFrame {
-		t, _ := ptypes.Timestamp(v.At)
-		match.Startframe[uint32(k)] = &Startframe{
-			At:   t,
+
+	for _, v := range buf.StartFrame {
+		// t, _ := ptypes.Timestamp(v.At)
+		match.Startframe[v.Fragment] = &Startframe{
+			// At:   t,
+			At:   time.Now(),
 			Body: v.Body,
 		}
 	}
 
-	for k, v := range buf.FullFrame {
-		t, _ := ptypes.Timestamp(v.At)
-		match.Fullframes[uint32(k)] = &Fullframe{
-			At:   t,
+	fulls := make([]uint32, 0, len(match.Fullframes))
+	for _, v := range buf.FullFrame {
+		// t, _ := ptypes.Timestamp(v.At)
+		match.Fullframes[v.Fragment] = &Fullframe{
+			//At:   t,
+			At:   time.Now(),
 			Tick: int(v.Tick),
 			Body: v.Body,
 		}
+		fulls = append(fulls, v.Fragment)
 	}
 
-	for k, v := range buf.DeltaFrame {
-		match.Deltaframes[uint32(k)] = &Deltaframes{
+	deltas := make([]uint32, 0, len(match.Deltaframes))
+	for _, v := range buf.DeltaFrame {
+		match.Deltaframes[v.Fragment] = &Deltaframes{
 			EndTick: int(v.Endtick),
 			Body:    v.Body,
 		}
+		deltas = append(deltas, v.Fragment)
 	}
 
 	Matches.Register(match)
 
+	log.Printf("Loaded match from %s. Available Full list : [%v], Delta : [%v]\n", file.Name(), fulls, deltas)
 	return match.ID, nil
 }
 
