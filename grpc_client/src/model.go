@@ -147,3 +147,15 @@ func (g *GOTVPLUS) SaveMatchToFileByToken(token string, path string) error {
 	}
 	return nil
 }
+
+func (g *GOTVPLUS) LoadMatchFromFile(token string) error {
+	c := *g.Client
+	option := &pb.LoadMatchFromFileRequest{
+		Token: token,
+	}
+	_, err := c.LoadMatchFromFile(context.TODO(), option)
+	if err != nil {
+		return err
+	}
+	return nil
+}

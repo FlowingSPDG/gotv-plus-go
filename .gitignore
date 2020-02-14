@@ -15,3 +15,4 @@
 # vendor/
 server/server_linux_amd64
 *.tar
+*.gz
