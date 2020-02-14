@@ -42,6 +42,13 @@ type Match struct {
 	Fragment uint32 // latest fragment
 }
 
+func (m *Match) UpdateFragment(fragnumber uint32) error {
+	m.Lock()
+	m.Fragment = fragnumber
+	m.Unlock()
+	return nil
+}
+
 func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
 	if m == nil {
 		return nil, fmt.Errorf("Match not found")
@@ -69,39 +76,36 @@ func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
 }
 
 func (m *Match) RegisterStartFrame(fragment uint32, start *Startframe) error {
+	if m.Startframe == nil {
+		m.Startframe = make(map[uint32]*Startframe)
+	}
 	m.Lock()
 	defer m.Unlock()
-	if _, ok := m.Startframe[uint32(fragment)]; !ok {
-		return fmt.Errorf("Not Found")
-	}
 	m.Startframe[uint32(fragment)] = start
 	return nil
 }
 
 func (m *Match) RegisterFullFrame(fragment uint32, full *Fullframe) error {
+	if m.Fullframes == nil {
+		m.Fullframes = make(map[uint32]*Fullframe)
+	}
 	m.Lock()
 	defer m.Unlock()
-	if _, ok := m.Fullframes[uint32(fragment)]; !ok {
-		return fmt.Errorf("Not Found")
-	}
 	m.Fullframes[uint32(fragment)] = full
 	return nil
 }
 
-func (m *Match) RegisterDelstaFrame(fragment uint32, delta *Deltaframes) error {
+func (m *Match) RegisterDeltaFrame(fragment uint32, delta *Deltaframes) error {
+	if m.Deltaframes == nil {
+		m.Deltaframes = make(map[uint32]*Deltaframes)
+	}
 	m.Lock()
 	defer m.Unlock()
-	if _, ok := m.Deltaframes[uint32(fragment)]; !ok {
-		return fmt.Errorf("Not Found")
-	}
 	m.Deltaframes[uint32(fragment)] = delta
 	return nil
 }
 
 func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
-	if m == nil {
-		return nil, fmt.Errorf("Match not found")
-	}
 	m.Lock()
 	defer m.Unlock()
 	if f, ok := m.Fullframes[fragnumber]; ok {

@@ -39,7 +39,7 @@ func main() {
 
 	r.GET("/", func(c *gin.Context) {
 		m, _ := handlers.Matches.GetTokens()
-		log.Printf("Matches : %v\n", m)
+		log.Printf("Tokens : %v\n", m)
 		c.Header("Cache-Control", "public, max-age=10")
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"Title":   "GOTV+ for Gophers",
