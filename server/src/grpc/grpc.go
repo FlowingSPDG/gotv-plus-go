@@ -45,21 +45,21 @@ func (s server) GetMatch(ctx context.Context, message *pb.GetMatchRequest) (*pb.
 	case *pb.GetMatchRequest_Id:
 		match, err := handlers.Matches.GetMatchByID(i.Id)
 		if err != nil {
-			return &pb.Match{
-				Token: match.Token,
-				Id:    match.ID,
-			}, nil
+			return nil, err
 		}
-		return nil, err
+		return &pb.Match{
+			Token: match.Token,
+			Id:    match.ID,
+		}, nil
 	case *pb.GetMatchRequest_Token:
 		match, err := handlers.Matches.GetMatchByToken(i.Token)
 		if err != nil {
-			return &pb.Match{
-				Token: match.Token,
-				Id:    match.ID,
-			}, nil
+			return nil, err
 		}
-		return nil, err
+		return &pb.Match{
+			Token: match.Token,
+			Id:    match.ID,
+		}, nil
 	}
 	return nil, fmt.Errorf("Something went wrong")
 }

@@ -58,7 +58,7 @@ func (g *GOTVPLUS) GetMatchByID(id string) (*pb.Match, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Matches : %v\n", *matches)
+	log.Printf("Match : %v\n", *matches)
 	return matches, nil
 }
 
@@ -73,7 +73,7 @@ func (g *GOTVPLUS) GetMatchByToken(token string) (*pb.Match, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Matches : %v\n", *matches)
+	log.Printf("Match : %v\n", *matches)
 	return matches, nil
 }
 
