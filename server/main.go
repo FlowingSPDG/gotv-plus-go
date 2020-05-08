@@ -2,12 +2,14 @@ package main
 
 import (
 	"flag"
-	grpc "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc"
-	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
-	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	grpc "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc"
+	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
 )
 
 var (

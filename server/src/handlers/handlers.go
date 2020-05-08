@@ -1,11 +1,13 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // GET  /match/:token/sync
@@ -14,7 +16,9 @@ import (
 
 // SyncHandler handlers request against /match/:token/sync
 func SyncHandler(c *gin.Context) {
-	c.Header("Cache-Control", "public, max-age=5")
+	c.Header("Cache-Control", "public, max-age=3")
+	// Set "Expires" for 3sec...
+
 	if c.Params.ByName("fragment_number") != "sync" { // Rejects all requests other than /sync
 		c.String(http.StatusBadRequest, "Unknown Request")
 		return
@@ -28,55 +32,29 @@ func SyncHandler(c *gin.Context) {
 		return
 	}
 	if c.Query("fragment") != "" {
-		frag, err := strconv.Atoi(c.Query("fragment"))
+		fragment, err := strconv.Atoi(c.Query("fragment"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "fragment should be int")
 			return
 		}
-		full, err := m.GetFullFrame(m.Fragment)
+		frag := uint32(fragment)
+		json, err := m.Sync(frag)
 		if err != nil {
-			log.Printf("ERR : Fragment %d not found. %v\n", m.Fragment, err)
+			log.Printf("ERR : %v\n", err)
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		specifiedfull, err := m.GetFullFrame(uint32(frag))
-		if err != nil {
-			log.Printf("ERR : Fragment %d not found. %v\n", frag, err)
 
-			c.String(http.StatusNotFound, err.Error())
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"tick":            specifiedfull.Tick,
-			"rtdelay":         time.Since(specifiedfull.At).Seconds(),
-			"rcvage":          time.Since(full.At).Seconds(),
-			"fragment":        frag,
-			"signup_fragment": m.SignupFragment,
-			"tps":             m.Tps,
-			"protocol":        m.Protocol,
-		})
+		c.JSON(http.StatusOK, json)
 	} else {
-		full, err := m.GetFullFrame(m.Fragment)
+		json, err := m.Sync(m.Latest)
 		if err != nil {
-			log.Printf("ERR : Fragment %d not found. %v\n", m.Fragment, err)
+			log.Printf("ERR : %v\n", err)
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
-		if err != nil {
-			log.Printf("ERR : Fragment %d not found. %v\n", m.Fragment-Matches.Delay, err)
-			c.String(http.StatusNotFound, err.Error())
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"tick":            full.Tick,
-			"rtdelay":         time.Since(delayedfull.At).Seconds(),
-			"rcvage":          time.Since(full.At).Seconds(),
-			"fragment":        m.Fragment - Matches.Delay,
-			"signup_fragment": m.SignupFragment,
-			"tps":             m.Tps,
-			"protocol":        m.Protocol,
-		})
+
+		c.JSON(http.StatusOK, json)
 	}
 }
 
@@ -95,44 +73,29 @@ func SyncByIDHandler(c *gin.Context) {
 		return
 	}
 	if c.Query("fragment") != "" {
-		frag, err := strconv.Atoi(c.Query("fragment"))
+		fragment, err := strconv.Atoi(c.Query("fragment"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "fragment should be int")
 			return
 		}
-		full, err := m.GetFullFrame(m.Fragment)
-		specifiedfull, err := m.GetFullFrame(uint32(frag))
+		frag := uint32(fragment)
+		json, err := m.Sync(frag)
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{
-			"tick":            specifiedfull.Tick,
-			"rtdelay":         time.Since(specifiedfull.At).Seconds(),
-			"rcvage":          time.Since(full.At).Seconds(),
-			"fragment":        frag,
-			"signup_fragment": m.SignupFragment,
-			"tps":             m.Tps,
-			"protocol":        m.Protocol,
-		})
+
+		c.JSON(http.StatusOK, json)
 	} else {
-		full, err := m.GetFullFrame(m.Fragment)
-		delayedfull, err := m.GetFullFrame(m.Fragment - Matches.Delay)
+		json, err := m.Sync(m.Latest)
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{
-			"tick":            full.Tick,
-			"rtdelay":         time.Since(delayedfull.At).Seconds(),
-			"rcvage":          time.Since(full.At).Seconds(),
-			"fragment":        m.Fragment - Matches.Delay,
-			"signup_fragment": m.SignupFragment,
-			"tps":             m.Tps,
-			"protocol":        m.Protocol,
-		})
+
+		c.JSON(http.StatusOK, json)
 	}
 }
 
@@ -147,6 +110,7 @@ func GetBodyHandler(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Fragment should be int")
 		return
 	}
+	frag := uint32(fragment)
 	ft := c.Params.ByName("frametype")
 
 	m, err := Matches.GetMatchByToken(t)
@@ -154,12 +118,35 @@ func GetBodyHandler(c *gin.Context) {
 		c.String(http.StatusNotFound, err.Error())
 		return
 	}
-	frags, err := m.GetBody(ft, uint32(fragment))
-	if err != nil {
-		c.String(http.StatusNotFound, err.Error())
+	switch ft {
+	case "full":
+		frags, err := m.GetFullFrame(frag)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", frags.Body)
 		return
+	case "delta":
+		frags, err := m.GetDeltaFrame(frag)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", frags.Body)
+		return
+	case "start":
+		frags, err := m.GetStartFrame(frag)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", frags.Body)
+		return
+	default:
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("INVALID FRAME TYPE"))
 	}
-	c.Data(200, "application/octet-stream", frags)
+
 }
 
 // GetBodyByIDHandler handles fragment request from CS:GO client
@@ -173,6 +160,7 @@ func GetBodyByIDHandler(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Fragment should be int")
 		return
 	}
+	frag := uint32(fragment)
 	ft := c.Params.ByName("frametype")
 
 	m, err := Matches.GetMatchByID(id)
@@ -180,12 +168,34 @@ func GetBodyByIDHandler(c *gin.Context) {
 		c.String(http.StatusNotFound, err.Error())
 		return
 	}
-	frags, err := m.GetBody(ft, uint32(fragment))
-	if err != nil {
-		c.String(http.StatusNotFound, err.Error())
+	switch ft {
+	case "full":
+		frags, err := m.GetFullFrame(frag)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", frags.Body)
 		return
+	case "delta":
+		frags, err := m.GetDeltaFrame(frag)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", frags.Body)
+		return
+	case "start":
+		frags, err := m.GetStartFrame(frag)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", frags.Body)
+		return
+	default:
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("INVALID FRAME TYPE"))
 	}
-	c.Data(200, "application/octet-stream", frags)
 }
 
 func PostBodyByIDHandler(c *gin.Context) {
@@ -215,14 +225,14 @@ func PostBodyByIDHandler(c *gin.Context) {
 
 	switch ft {
 	case "start":
-		tick, err := strconv.Atoi(c.Query("tick"))
-		tps, err := strconv.ParseFloat(c.Query("tps"), 10)
+		tpsF, err := strconv.ParseFloat(c.Query("tps"), 10)
 		protocol, err := strconv.Atoi(c.Query("protocol"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "fragment,tps,protocol should be float or int")
 			return
 		}
-		log.Printf("Received START Fragment. Register match... Token[%s] Tps[%f] Protocol[%d]\n", t, tps, protocol)
+		tps := uint32(tpsF)
+		log.Printf("Received START Fragment. Register match... Token[%s] Tps[%d] Protocol[%d]\n", t, tps, protocol)
 		Matches.Register(&Match{
 			ID:             id,
 			Token:          t,
@@ -230,14 +240,10 @@ func PostBodyByIDHandler(c *gin.Context) {
 			Fullframes:     make(map[uint32]*Fullframe),
 			Deltaframes:    make(map[uint32]*Deltaframes),
 			SignupFragment: uint32(fragment),
-			Tps:            tps,
+			Tps:            uint32(tps),
 			Map:            c.Query("map"),
 			Protocol:       uint8(protocol),
 			Auth:           auth,
-			Tick:           uint32(tick),
-			// RtDelay:        10, // TODO?
-			// RcVage:         10, // TODO?
-			// Fragment:       uint32(fragment),
 		})
 		m, err := Matches.GetMatchByToken(t)
 		if err != nil {
@@ -245,7 +251,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		m.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody})
+		m.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody}, uint32(tps))
 
 		c.String(http.StatusOK, "OK")
 	case "full":
@@ -262,10 +268,9 @@ func PostBodyByIDHandler(c *gin.Context) {
 		}
 		log.Printf("tick = %d\n", tick)
 
-		m.UpdateFragment(uint32(fragment))
 		m.RegisterFullFrame(uint32(fragment), &Fullframe{
 			At:   time.Now(),
-			Tick: tick,
+			Tick: uint64(tick),
 			Body: reqBody,
 		})
 		c.String(http.StatusOK, "OK")
@@ -286,10 +291,9 @@ func PostBodyByIDHandler(c *gin.Context) {
 
 		// final...?
 
-		m.UpdateFragment(uint32(fragment))
 		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
 			Body:    reqBody,
-			EndTick: endtick,
+			EndTick: uint64(endtick),
 		})
 		c.String(http.StatusOK, "OK")
 
@@ -326,29 +330,26 @@ func PostBodyHandler(c *gin.Context) {
 
 	switch ft {
 	case "start":
-		tick, err := strconv.Atoi(c.Query("tick"))
-		tps, err := strconv.ParseFloat(c.Query("tps"), 10)
+		tpsF, err := strconv.ParseFloat(c.Query("tps"), 10)
 		protocol, err := strconv.Atoi(c.Query("protocol"))
 		if err != nil {
 			c.String(http.StatusBadRequest, "fragment,tps,protocol should be float or int")
 			return
 		}
+		tps := uint32(tpsF)
 		match := &Match{
 			Token:          t,
 			Startframe:     make(map[uint32]*Startframe),
 			Fullframes:     make(map[uint32]*Fullframe),
 			Deltaframes:    make(map[uint32]*Deltaframes),
 			SignupFragment: uint32(fragment),
-			Tps:            tps,
+			Tps:            uint32(tps),
 			Map:            c.Query("map"),
 			Protocol:       uint8(protocol),
 			Auth:           auth,
-			Tick:           uint32(tick),
-			// RtDelay:        10, // TODO?
-			// RcVage:         10, // TODO?
-			// Fragment:       uint32(fragment),
 		}
-		match.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody})
+		log.Printf("Received START Fragment. Register match... Token[%s] Tps[%d] Protocol[%d]\n", t, tps, protocol)
+		match.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody}, uint32(tps))
 		Matches.Register(match)
 		c.String(http.StatusOK, "OK")
 	case "full":
@@ -365,10 +366,9 @@ func PostBodyHandler(c *gin.Context) {
 		}
 		log.Printf("tick = %d\n", tick)
 
-		m.UpdateFragment(uint32(fragment))
 		m.RegisterFullFrame(uint32(fragment), &Fullframe{
 			At:   time.Now(),
-			Tick: tick,
+			Tick: uint64(tick),
 			Body: reqBody,
 		})
 		c.String(http.StatusOK, "OK")
@@ -389,10 +389,9 @@ func PostBodyHandler(c *gin.Context) {
 
 		// final...?
 
-		m.UpdateFragment(uint32(fragment))
 		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
 			Body:    reqBody,
-			EndTick: endtick,
+			EndTick: uint64(endtick),
 		})
 		c.String(http.StatusOK, "OK")
 
