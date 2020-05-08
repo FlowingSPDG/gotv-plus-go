@@ -120,28 +120,28 @@ func GetBodyHandler(c *gin.Context) {
 	}
 	switch ft {
 	case "full":
-		frags, err := m.GetFullFrame(frag)
+		full, err := m.GetFullFrame(frag)
 		if err != nil {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", frags.Body)
+		c.Data(200, "application/octet-stream", full.Body)
 		return
 	case "delta":
-		frags, err := m.GetDeltaFrame(frag)
+		delta, err := m.GetDeltaFrame(frag)
 		if err != nil {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", frags.Body)
+		c.Data(200, "application/octet-stream", delta.Body)
 		return
 	case "start":
-		frags, err := m.GetStartFrame(frag)
+		start, err := m.GetStartFrame(frag)
 		if err != nil {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", frags.Body)
+		c.Data(200, "application/octet-stream", start.Body)
 		return
 	default:
 		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("INVALID FRAME TYPE"))
@@ -170,28 +170,28 @@ func GetBodyByIDHandler(c *gin.Context) {
 	}
 	switch ft {
 	case "full":
-		frags, err := m.GetFullFrame(frag)
+		full, err := m.GetFullFrame(frag)
 		if err != nil {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", frags.Body)
+		c.Data(200, "application/octet-stream", full.Body)
 		return
 	case "delta":
-		frags, err := m.GetDeltaFrame(frag)
+		delta, err := m.GetDeltaFrame(frag)
 		if err != nil {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", frags.Body)
+		c.Data(200, "application/octet-stream", delta.Body)
 		return
 	case "start":
-		frags, err := m.GetStartFrame(frag)
+		start, err := m.GetStartFrame(frag)
 		if err != nil {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", frags.Body)
+		c.Data(200, "application/octet-stream", start.Body)
 		return
 	default:
 		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("INVALID FRAME TYPE"))
@@ -292,6 +292,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 		// final...?
 
 		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
+			At:      time.Now(),
 			Body:    reqBody,
 			EndTick: uint64(endtick),
 		})
@@ -390,6 +391,7 @@ func PostBodyHandler(c *gin.Context) {
 		// final...?
 
 		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
+			At:      time.Now(),
 			Body:    reqBody,
 			EndTick: uint64(endtick),
 		})

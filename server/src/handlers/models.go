@@ -19,7 +19,7 @@ import (
 var (
 	Matches *MatchesEngine
 	Auth    string
-	Delay   uint32
+	Delay   uint32 = 3 // default : 3fragments.
 )
 
 // InitMatchEngine Initializes MatchEngine
@@ -118,35 +118,42 @@ func (m *Match) TagID(id string) error {
 }
 
 func (m *Match) IsSyncReady(fragnumber uint32) bool {
-	m.Lock()
-	defer m.Unlock()
-	if _, ok := m.Fullframes[fragnumber]; !ok {
+	_, err := m.GetDeltaFrame(fragnumber)
+	if err != nil {
+		log.Printf("SYNC NOT READY : fragment[%d]\n", fragnumber)
 		return false
 	}
-	if _, ok := m.Deltaframes[fragnumber]; !ok {
+	_, err = m.GetFullFrame(fragnumber)
+	if err != nil {
+		log.Printf("SYNC NOT READY : fragment[%d]\n", fragnumber)
 		return false
 	}
+	log.Printf("SYNC READY : fragment[%d]\n", fragnumber)
 	return true
 }
 
 func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
-	var i uint32 = fragnumber
 	for {
-		if m.IsSyncReady(i) {
-			fragnumber = i
+		if fragnumber > m.Latest {
+			return nil, fmt.Errorf("ERROR Fragment not found")
+		}
+		if m.IsSyncReady(fragnumber) {
 			break
 		}
-		i--
+		fragnumber--
 	}
 
 	f, err := m.GetFullFrame(fragnumber)
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("FULL TICK[%d]\n", f.Tick)
+
 	d, err := m.GetDeltaFrame(fragnumber)
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("DELTA TICK[%d]\n", d.EndTick)
 
 	latest, _ := m.GetFullFrame(m.Latest)
 
@@ -158,7 +165,7 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 		Endtick:        d.EndTick,
 		RealTimeDelay:  rt.Seconds(),
 		ReceiveAge:     rc.Seconds(),
-		Fragment:       m.Latest,
+		Fragment:       m.Latest - Delay,
 		SignupFragment: m.SignupFragment,
 		TickPerSecond:  m.Tps,
 		// KeyframeInterval: 3,
