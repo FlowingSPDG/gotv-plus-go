@@ -3,7 +3,7 @@
 ## Author
 Shugo Kawamura  
 Github : [**FlowingSPDG**](http://github.com/FlowingSPDG)  
-Twitter : [**@FlowingSPDG**](http://twitter.com/FlowingSPDG) / [**@FlowingSPDG_EN**](http://twitter.com/FlowingSPDG_EN)
+Twitter : [**@ejzefl**](http://twitter.com/ejzefl) / [**@FlowingSPDG**](http://twitter.com/FlowingSPDG) / [**@HiiragiNil**](http://twitter.com/HiiragiNil)
 
 ## About
 This is [GOTV+](https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Broadcast) broadcast server written in Go and Gin.  
