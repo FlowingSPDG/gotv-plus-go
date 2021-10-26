@@ -19,15 +19,15 @@ import (
 var (
 	Matches *MatchesEngine
 	Auth    string
-	Delay   uint32 = 5 // default : 5 fragments.
+	Delay   uint32
 )
 
 // InitMatchEngine Initializes MatchEngine
 func InitMatchEngine(auth string, delay uint32) {
+	Delay = delay
 	Matches = &MatchesEngine{
 		Matches: make(map[string]*Match),
 		Auth:    auth, //  tv_broadcast_origin_auth "gopher"
-		Delay:   delay,
 	}
 }
 
