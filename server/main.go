@@ -2,19 +2,20 @@ package main
 
 import (
 	"flag"
-	grpc "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc"
-	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
-	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	grpc "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc"
+	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
+	"github.com/gin-gonic/gin"
 )
 
 var (
 	addr     = flag.String("addr", "localhost:8080", "Address where GOTV+ hosted at")
 	debug    = flag.Bool("debug", false, "Debug mode option")
 	grpcaddr = flag.String("grpc", "localhost:50055", "gRPC API Address")
-	delay    = flag.Int("delay", 3, "How much frags to delay.")
+	delay    = flag.Int("delay", 6, "How much frags to delay.")
 	auth     = flag.String("auth", "gopher", "GOTV+ Auth password")
 )
 
