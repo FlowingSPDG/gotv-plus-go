@@ -19,7 +19,7 @@ import (
 var (
 	Matches *MatchesEngine
 	Auth    string
-	Delay   uint32 = 3 // default : 3fragments.
+	Delay   uint32 = 5 // default : 5 fragments.
 )
 
 // InitMatchEngine Initializes MatchEngine
@@ -155,17 +155,16 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 	}
 	log.Printf("DELTA TICK[%d]\n", d.EndTick)
 
-	latest, _ := m.GetFullFrame(m.Latest)
-
+	latest, _ := m.GetFullFrame(fragnumber)
 	rt := time.Since(f.At)
 	rc := time.Since(latest.At)
 
 	s := &SyncJSON{
-		Tick:           f.Tick,
-		Endtick:        d.EndTick,
+		Tick: f.Tick,
+		// Endtick: d.EndTick,
 		RealTimeDelay:  rt.Seconds(),
 		ReceiveAge:     rc.Seconds(),
-		Fragment:       m.Latest - Delay,
+		Fragment:       fragnumber - Delay,
 		SignupFragment: m.SignupFragment,
 		TickPerSecond:  m.Tps,
 		// KeyframeInterval: 3,
@@ -406,9 +405,9 @@ type Deltaframes struct {
 
 type SyncJSON struct {
 	Tick             uint64  `json:"tick"`
-	Endtick          uint64  `json:"endtick"`
-	RealTimeDelay    float64 `json:"rtdelay"`
-	ReceiveAge       float64 `json:"rcvage"`
+	Endtick          uint64  `json:"endtick,omitempty"`
+	RealTimeDelay    float64 `json:"rtdelay,omitempty"`
+	ReceiveAge       float64 `json:"rcvage,omitempty"`
 	Fragment         uint32  `json:"fragment"`
 	SignupFragment   uint32  `json:"signup_fragment"`
 	TickPerSecond    uint32  `json:"tps"`

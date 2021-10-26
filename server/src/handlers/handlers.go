@@ -55,6 +55,7 @@ func SyncHandler(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, json)
+		log.Println("SYNC JSON :", json)
 	}
 }
 
@@ -266,7 +267,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusBadRequest, "tick should be float or int")
 			return
 		}
-		log.Printf("tick = %d\n", tick)
+		// log.Printf("tick = %d\n", tick)
 
 		m.RegisterFullFrame(uint32(fragment), &Fullframe{
 			At:   time.Now(),
@@ -286,8 +287,8 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusBadRequest, "endtick should be float or int")
 			return
 		}
-		log.Printf("endtick = %d\n", endtick)
-		log.Printf("final = %s\n", c.Query("final"))
+		// log.Printf("endtick = %d\n", endtick)
+		// log.Printf("final = %s\n", c.Query("final"))
 
 		// final...?
 
@@ -365,7 +366,7 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusBadRequest, "tick should be float or int")
 			return
 		}
-		log.Printf("tick = %d\n", tick)
+		// log.Printf("tick = %d\n", tick)
 
 		m.RegisterFullFrame(uint32(fragment), &Fullframe{
 			At:   time.Now(),
@@ -385,8 +386,8 @@ func PostBodyHandler(c *gin.Context) {
 			c.String(http.StatusBadRequest, "endtick should be float or int")
 			return
 		}
-		log.Printf("endtick = %d\n", endtick)
-		log.Printf("final = %s\n", c.Query("final"))
+		// log.Printf("endtick = %d\n", endtick)
+		// log.Printf("final = %s\n", c.Query("final"))
 
 		// final...?
 

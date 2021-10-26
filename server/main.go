@@ -16,7 +16,7 @@ var (
 	addr     = flag.String("addr", "localhost:8080", "Address where GOTV+ hosted at")
 	debug    = flag.Bool("debug", false, "Debug mode option")
 	grpcaddr = flag.String("grpc", "localhost:50055", "gRPC API Address")
-	delay    = flag.Int("delay", 3, "How much frags to delay.")
+	delay    = flag.Int("delay", 6, "How much frags to delay.")
 	auth     = flag.String("auth", "gopher", "GOTV+ Auth password")
 )
 
