@@ -143,15 +143,13 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 		fragnumber--
 	}
 
-	fragnumber -= Delay
-
-	f, err := m.GetFullFrame(fragnumber)
+	f, err := m.GetFullFrame(fragnumber - Delay)
 	if err != nil {
 		return nil, err
 	}
 	log.Printf("FULL TICK[%d]\n", f.Tick)
 
-	d, err := m.GetDeltaFrame(fragnumber)
+	d, err := m.GetDeltaFrame(fragnumber - Delay)
 	if err != nil {
 		return nil, err
 	}
@@ -162,16 +160,16 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 	rc := time.Since(latest.At)
 
 	s := &SyncJSON{
-		Tick:             f.Tick,
-		Endtick:          d.EndTick,
-		RealTimeDelay:    rt.Seconds(),
-		ReceiveAge:       rc.Seconds(),
-		Fragment:         fragnumber,
-		SignupFragment:   m.SignupFragment,
-		TickPerSecond:    m.Tps,
-		KeyframeInterval: 3,
-		Map:              m.Map,
-		Protocol:         4,
+		Tick:           f.Tick,
+		Endtick:        d.EndTick,
+		RealTimeDelay:  rt.Seconds(),
+		ReceiveAge:     rc.Seconds(),
+		Fragment:       fragnumber - Delay,
+		SignupFragment: m.SignupFragment,
+		TickPerSecond:  m.Tps,
+		// KeyframeInterval: 3,
+		Map:      m.Map,
+		Protocol: 4,
 	}
 
 	return s, nil
