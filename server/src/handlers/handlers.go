@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // GET  /match/:token/sync
@@ -69,7 +70,7 @@ func SyncHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"tick":            full.Tick,
+			"tick":            delayedfull.Tick,
 			"rtdelay":         time.Since(delayedfull.At).Seconds(),
 			"rcvage":          time.Since(full.At).Seconds(),
 			"fragment":        m.Fragment - Matches.Delay,
@@ -125,7 +126,7 @@ func SyncByIDHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"tick":            full.Tick,
+			"tick":            delayedfull.Tick,
 			"rtdelay":         time.Since(delayedfull.At).Seconds(),
 			"rcvage":          time.Since(full.At).Seconds(),
 			"fragment":        m.Fragment - Matches.Delay,
