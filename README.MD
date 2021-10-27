@@ -3,13 +3,13 @@
 ## Author
 Shugo Kawamura  
 Github : [**FlowingSPDG**](http://github.com/FlowingSPDG)  
-Twitter : [**@ejzefl**](http://twitter.com/ejzefl) / [**@FlowingSPDG**](http://twitter.com/FlowingSPDG) / [**@HiiragiNil**](http://twitter.com/HiiragiNil)
+Twitter : [**@rjzefl**](http://twitter.com/rjzefl) / [**@FlowingSPDG**](http://twitter.com/FlowingSPDG) / [**@HiiragiNil**](http://twitter.com/HiiragiNil)
 
 ## About
 This is [GOTV+](https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Broadcast) broadcast server written in Go and Gin.  
-tv_broadcast sends GOTV fragment data API server,and API server relays fragment data for CS:GO Clients.  
+`tv_broadcast` sends GOTV fragment data API server,and API server relays fragment data for CS:GO Clients.  
 CS:GO clients will get those fragments through HTTP,so viewer can play GOTV like a demo file.(e.g. Shift+F2 demoui, 1/4 speed play, HLAE and other external effects.)  
-Also you can (probably) add CDN for GOTV+ for multi region stable connections.  
+Also you can add CDN for GOTV+ for multi region stable connections such as Major tournament.  
   
 Basically this is same with [kunalpowar/csgo-broadacst](https://github.com/kunalpowar/csgo-broadcast)(Go with mux) and [S5Projects/csgo-broadcast](https://github.com/S5Projects/csgo-broadcast)(NodeJS/TypeScript with Express).  
 
@@ -36,7 +36,7 @@ There are several hidden options that is not on document. I haven't covored all 
 - Multi matches Support
 - Match management(Give specify ID for each matches for support better path like : `/match/this_is_good_match_path/sync` )
 - Match Delete
-- RtDelay/RcVage Support(?)
+- RtDelay/RcVage Support
 - Front end support
 - Internal gRPC API
 - CDN Support(Tested with Google Cloud CDN)
