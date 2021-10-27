@@ -29,7 +29,7 @@ There are several hidden options that is not on document. I haven't covored all 
 - "F" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" f500`) will play match from `500` fragment. CS:GO client will send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync?fragment=500 .
 - "A" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" a`) will play match from `1` fragment. CS:GO client will send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync?fragment=1 .
 - "C" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" c`) will play match from `1` fragment. CS:GO client **WILL NOT** send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync . CS:GO client will get 1st fragment directly.
-- "B" Option / Unknown
+- "B" Option / Skips dem_stop control frame(?)
 
 
 ## Features
