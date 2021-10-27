@@ -1,0 +1,12 @@
+{
+  "name": "reference",
+  "version": "1.0.0",
+  "main": "hltvbroadcastrelay.js",
+  "license": "",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "http": "^0.0.1-security",
+    "os": "^0.1.2",
+    "url": "^0.11.0"
+  }
+}
