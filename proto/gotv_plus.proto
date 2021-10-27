@@ -24,24 +24,23 @@ message MatchBinary {
 
 message StartFrameBinary {
   uint32 fragment = 1;
-  uint32 tick = 2;
-  double tps = 3;
-  string map = 4;
-  uint32 protocol = 5;
-  bytes body = 6;
-  google.protobuf.Timestamp at = 7;
+  uint32 tps = 2;
+  string map = 3;
+  uint32 protocol = 4;
+  bytes body = 5;
+  google.protobuf.Timestamp at = 6;
 }
 
 message FullFrameBinary {
   uint32 fragment = 1;
-  uint32 tick = 2;
+  uint64 tick = 2;
   bytes body = 3;
   google.protobuf.Timestamp at = 4;
 }
 
 message DeltaFrameBinary {
   uint32 fragment = 1;
-  uint32 endtick = 2;
+  uint64 endtick = 2;
   bytes body = 3;
 }
 

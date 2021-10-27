@@ -3,15 +3,17 @@ package handlers
 import (
 	"compress/gzip"
 	"fmt"
-	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+
+	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
 )
 
 var (
@@ -22,70 +24,42 @@ var (
 
 // InitMatchEngine Initializes MatchEngine
 func InitMatchEngine(auth string, delay uint32) {
+	Delay = delay
 	Matches = &MatchesEngine{
 		Matches: make(map[string]*Match),
 		Auth:    auth, //  tv_broadcast_origin_auth "gopher"
-		Delay:   delay,
 	}
 }
 
 type Match struct {
 	sync.Mutex
-	ID          string                  // Manually tagged ID.
-	Token       string                  // Match token
+	ID    string // Manually tagged ID.
+	Token string // Match token
+	Auth  string // auth for POST auths
+
 	Startframe  map[uint32]*Startframe  // start frame data
 	Fullframes  map[uint32]*Fullframe   // full frame data
 	Deltaframes map[uint32]*Deltaframes // delta frame data
 
-	SignupFragment uint32  // sign up fragment for /sync
-	Tps            float64 // tickrate per secs for /sync
-	Map            string  // map for /sync
-	Protocol       uint8   // protocol for /sync
-	Auth           string  // auth for POST auths
+	SignupFragment uint32 // sign up fragment for /sync
+	Tps            uint32 // tickrate per secs for /sync
+	Map            string // map for /sync
+	Protocol       uint8  // protocol for /sync
 
-	Tick     uint32 // current tick for /sync
-	RtDelay  uint8  // current rtdelay for /sync
-	RcVage   uint8  // current rtvage for /sync
-	Fragment uint32 // latest fragment
+	// RtDelay uint8  // Real-time delay: delay of this fragment from real-time, in seconds
+	// RcVage  uint8  // Receive age: how many seconds since relay last received data from game server
+	Latest uint32 // latest fragment number
 }
 
-func (m *Match) UpdateFragment(fragnumber uint32) error {
-	m.Lock()
-	m.Fragment = fragnumber
-	m.Unlock()
-	return nil
-}
-
-func (m *Match) GetBody(ftype string, fragnumber uint32) ([]byte, error) {
-	m.Lock()
-	defer m.Unlock()
-	switch ftype {
-	case "start":
-		if f, ok := m.Startframe[fragnumber]; ok {
-			return f.Body, nil
-		}
-		return nil, fmt.Errorf("Not Found")
-	case "full":
-		if f, ok := m.Fullframes[fragnumber]; ok {
-			return f.Body, nil
-		}
-		return nil, fmt.Errorf("Not Found")
-	case "delta":
-		if f, ok := m.Deltaframes[fragnumber]; ok {
-			return f.Body, nil
-		}
-		return nil, fmt.Errorf("Not Found")
-	}
-	return nil, fmt.Errorf("Unknown ftype")
-}
-
-func (m *Match) RegisterStartFrame(fragment uint32, start *Startframe) error {
+func (m *Match) RegisterStartFrame(fragment uint32, start *Startframe, tps uint32) error {
 	if m.Startframe == nil {
 		m.Startframe = make(map[uint32]*Startframe)
 	}
 	m.Lock()
 	defer m.Unlock()
 	m.Startframe[uint32(fragment)] = start
+	m.SignupFragment = fragment
+	m.Tps = tps
 	return nil
 }
 
@@ -95,6 +69,7 @@ func (m *Match) RegisterFullFrame(fragment uint32, full *Fullframe) error {
 	}
 	m.Lock()
 	defer m.Unlock()
+	m.Latest = fragment
 	m.Fullframes[uint32(fragment)] = full
 	return nil
 }
@@ -105,8 +80,18 @@ func (m *Match) RegisterDeltaFrame(fragment uint32, delta *Deltaframes) error {
 	}
 	m.Lock()
 	defer m.Unlock()
+	m.Latest = fragment
 	m.Deltaframes[uint32(fragment)] = delta
 	return nil
+}
+
+func (m *Match) GetStartFrame(fragnumber uint32) (*Startframe, error) {
+	m.Lock()
+	defer m.Unlock()
+	if f, ok := m.Startframe[fragnumber]; ok {
+		return f, nil
+	}
+	return nil, fmt.Errorf("Not Found")
 }
 
 func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
@@ -118,11 +103,77 @@ func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
 	return nil, fmt.Errorf("Not Found")
 }
 
+func (m *Match) GetDeltaFrame(fragnumber uint32) (*Deltaframes, error) {
+	m.Lock()
+	defer m.Unlock()
+	if f, ok := m.Deltaframes[fragnumber]; ok {
+		return f, nil
+	}
+	return nil, fmt.Errorf("Not Found")
+}
+
 func (m *Match) TagID(id string) error {
 	m.ID = id
 	return nil
 }
 
+func (m *Match) IsSyncReady(fragnumber uint32) bool {
+	_, err := m.GetDeltaFrame(fragnumber)
+	if err != nil {
+		log.Printf("SYNC NOT READY : fragment[%d]\n", fragnumber)
+		return false
+	}
+	_, err = m.GetFullFrame(fragnumber)
+	if err != nil {
+		log.Printf("SYNC NOT READY : fragment[%d]\n", fragnumber)
+		return false
+	}
+	log.Printf("SYNC READY : fragment[%d]\n", fragnumber)
+	return true
+}
+
+func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
+	for {
+		if fragnumber > m.Latest {
+			return nil, fmt.Errorf("ERROR Fragment not found")
+		}
+		if m.IsSyncReady(fragnumber) {
+			break
+		}
+		fragnumber--
+	}
+
+	f, err := m.GetFullFrame(fragnumber - Delay)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("FULL TICK[%d]\n", f.Tick)
+
+	d, err := m.GetDeltaFrame(fragnumber - Delay)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("DELTA TICK[%d]\n", d.EndTick)
+
+	latest, _ := m.GetFullFrame(fragnumber)
+	rt := time.Since(f.At)
+	rc := time.Since(latest.At)
+
+	s := &SyncJSON{
+		Tick:           f.Tick,
+		Endtick:        d.EndTick,
+		RealTimeDelay:  rt.Seconds(),
+		ReceiveAge:     rc.Seconds(),
+		Fragment:       fragnumber - Delay,
+		SignupFragment: m.SignupFragment,
+		TickPerSecond:  m.Tps,
+		// KeyframeInterval: 3,
+		Map:      m.Map,
+		Protocol: 4,
+	}
+
+	return s, nil
+}
 func (m *Match) SaveMatchToFile(filename string) error {
 	log.Printf("Saving match %s to file...\n", m.Token)
 
@@ -144,7 +195,6 @@ func (m *Match) SaveMatchToFile(filename string) error {
 		t, _ := ptypes.TimestampProto(v.At)
 		binary.StartFrame = append(binary.StartFrame, &pb.StartFrameBinary{
 			Fragment: k,
-			Tick:     m.Tick,
 			Tps:      m.Tps,
 			Map:      m.Map,
 			Protocol: uint32(m.Protocol),
@@ -157,7 +207,7 @@ func (m *Match) SaveMatchToFile(filename string) error {
 		t, _ := ptypes.TimestampProto(v.At)
 		binary.FullFrame = append(binary.FullFrame, &pb.FullFrameBinary{
 			Fragment: k,
-			Tick:     m.Tick,
+			Tick:     v.Tick,
 			Body:     v.Body,
 			At:       t,
 		})
@@ -166,7 +216,7 @@ func (m *Match) SaveMatchToFile(filename string) error {
 	for k, v := range m.Deltaframes {
 		binary.DeltaFrame = append(binary.DeltaFrame, &pb.DeltaFrameBinary{
 			Fragment: k,
-			Endtick:  uint32(v.EndTick),
+			Endtick:  v.EndTick,
 			Body:     v.Body,
 		})
 	}
@@ -232,9 +282,8 @@ func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 		Map:            buf.StartFrame[0].Map,
 		Protocol:       uint8(buf.StartFrame[0].Protocol),
 		Auth:           "", // TODO
-		Tick:           buf.StartFrame[0].Tick,
 		SignupFragment: buf.StartFrame[0].Fragment,
-		Fragment:       buf.FullFrame[0].Fragment, // TODO?
+		// Latest:       buf.FullFrame[0].Fragment, // TODO?
 	}
 
 	for _, v := range buf.StartFrame {
@@ -252,7 +301,7 @@ func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 		match.Fullframes[v.Fragment] = &Fullframe{
 			//At:   t,
 			At:   time.Now(),
-			Tick: int(v.Tick),
+			Tick: v.Tick,
 			Body: v.Body,
 		}
 		fulls = append(fulls, v.Fragment)
@@ -261,7 +310,7 @@ func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 	deltas := make([]uint32, 0, len(match.Deltaframes))
 	for _, v := range buf.DeltaFrame {
 		match.Deltaframes[v.Fragment] = &Deltaframes{
-			EndTick: int(v.Endtick),
+			EndTick: v.Endtick,
 			Body:    v.Body,
 		}
 		deltas = append(deltas, v.Fragment)
@@ -344,11 +393,25 @@ type Startframe struct {
 
 type Fullframe struct {
 	At   time.Time
-	Tick int
+	Tick uint64
 	Body []byte
 }
 
 type Deltaframes struct {
+	At      time.Time
 	Body    []byte
-	EndTick int // ??
+	EndTick uint64
+}
+
+type SyncJSON struct {
+	Tick             uint64  `json:"tick"`
+	Endtick          uint64  `json:"endtick,omitempty"`
+	RealTimeDelay    float64 `json:"rtdelay,omitempty"`
+	ReceiveAge       float64 `json:"rcvage,omitempty"`
+	Fragment         uint32  `json:"fragment"`
+	SignupFragment   uint32  `json:"signup_fragment"`
+	TickPerSecond    uint32  `json:"tps"`
+	KeyframeInterval float64 `json:"keyframe_interval,omitempty"`
+	Map              string  `json:"map"`
+	Protocol         uint8   `json:"protocol"`
 }

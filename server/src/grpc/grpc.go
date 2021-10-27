@@ -2,11 +2,13 @@ package grpc
 
 import (
 	"context"
-	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
-	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
-	"google.golang.org/grpc"
 	"log"
 	"net"
+
+	"google.golang.org/grpc"
+
+	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
+	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
 )
 
 type server struct{}
@@ -54,7 +56,7 @@ func (s server) GetMatch(ctx context.Context, message *pb.GetMatchRequest) (*pb.
 			return nil, err
 		}
 	}
-	log.Printf("[gRPC] Match : Token[%s] Fragment[%d]\n", match.Token, match.Fragment)
+	log.Printf("[gRPC] Match : Token[%s] Latest Fragment[%d]\n", match.Token, match.Latest)
 	return &pb.Match{
 		Token: match.Token,
 		Id:    match.ID,
