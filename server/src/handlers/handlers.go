@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+  "fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -53,7 +53,6 @@ func SyncHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-
 		c.JSON(http.StatusOK, json)
 		log.Println("SYNC JSON :", json)
 	}
@@ -95,8 +94,7 @@ func SyncByIDHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-
-		c.JSON(http.StatusOK, json)
+    c.JSON(http.StatusOK, json)
 	}
 }
 
