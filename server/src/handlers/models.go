@@ -3,15 +3,16 @@ package handlers
 import (
 	"compress/gzip"
 	"fmt"
-	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
 	"sync"
 	"time"
+
+	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
 )
 
 var (
@@ -336,6 +337,21 @@ func (m *MatchesEngine) GetMatchByID(id string) (*Match, error) { // Gets tokens
 	}
 	return nil, fmt.Errorf("not found")
 }
+
+func (m *MatchesEngine) RelegateMatchesByID(id string, token string) (error) { // Relegates matches matching ID, but not matching token
+	if m.Matches == nil {
+		return fmt.Errorf("m.Matches == nil")
+	}
+	m.Lock()
+	defer m.Unlock()
+	for i := range m.Matches {
+		if m.Matches[i].ID == id && m.Matches[i].Token != token {
+			m.Matches[i].ID = m.Matches[i].ID + "/" + m.Matches[i].Token; // Make sure that ID will not match any other request, but can match if need to search for ID and Token
+		}
+	}
+	return nil
+}
+
 
 type Startframe struct {
 	At   time.Time

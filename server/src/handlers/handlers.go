@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // GET  /match/:token/sync
@@ -69,7 +70,8 @@ func SyncHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"tick":            full.Tick,
+			"tick":            delayedfull.Tick,
+			"token_redirect":  "token/" + m.Token,
 			"rtdelay":         time.Since(delayedfull.At).Seconds(),
 			"rcvage":          time.Since(full.At).Seconds(),
 			"fragment":        m.Fragment - Matches.Delay,
@@ -125,7 +127,8 @@ func SyncByIDHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"tick":            full.Tick,
+			"tick":            delayedfull.Tick,
+			"token_redirect":  "token/" + m.Token,
 			"rtdelay":         time.Since(delayedfull.At).Seconds(),
 			"rcvage":          time.Since(full.At).Seconds(),
 			"fragment":        m.Fragment - Matches.Delay,
@@ -138,12 +141,13 @@ func SyncByIDHandler(c *gin.Context) {
 
 // GetBodyHandler handles fragment request from CS:GO client
 func GetBodyHandler(c *gin.Context) {
-	c.Header("Cache-Control", "public, max-age=31536000")
+	c.Header("Cache-Control", "public, max-age=5400")
 	t := c.Params.ByName("token")
 	f := c.Params.ByName("fragment_number")
 
 	fragment, err := strconv.Atoi(f)
 	if err != nil {
+		c.Header("Cache-Control", "public, max-age=3")
 		c.String(http.StatusBadRequest, "Fragment should be int")
 		return
 	}
@@ -151,11 +155,13 @@ func GetBodyHandler(c *gin.Context) {
 
 	m, err := Matches.GetMatchByToken(t)
 	if err != nil {
+		c.Header("Cache-Control", "public, max-age=3")
 		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 	frags, err := m.GetBody(ft, uint32(fragment))
 	if err != nil {
+		c.Header("Cache-Control", "public, max-age=3")
 		c.String(http.StatusNotFound, err.Error())
 		return
 	}
@@ -164,12 +170,13 @@ func GetBodyHandler(c *gin.Context) {
 
 // GetBodyByIDHandler handles fragment request from CS:GO client
 func GetBodyByIDHandler(c *gin.Context) {
-	c.Header("Cache-Control", "public, max-age=31536000")
+	c.Header("Cache-Control", "public, max-age=5400")
 	id := c.Params.ByName("id")
 	f := c.Params.ByName("fragment_number")
 
 	fragment, err := strconv.Atoi(f)
 	if err != nil {
+		c.Header("Cache-Control", "public, max-age=3")
 		c.String(http.StatusBadRequest, "Fragment should be int")
 		return
 	}
@@ -177,11 +184,13 @@ func GetBodyByIDHandler(c *gin.Context) {
 
 	m, err := Matches.GetMatchByID(id)
 	if err != nil {
+		c.Header("Cache-Control", "public, max-age=3")
 		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 	frags, err := m.GetBody(ft, uint32(fragment))
 	if err != nil {
+		c.Header("Cache-Control", "public, max-age=3")
 		c.String(http.StatusNotFound, err.Error())
 		return
 	}
@@ -212,6 +221,10 @@ func PostBodyByIDHandler(c *gin.Context) {
 		c.String(http.StatusForbidden, "Failed to fetch request body")
 		return
 	}
+
+	// Make sure we relegate all stale matches streamed previously with the same ID
+	// but keep the match with the currently active token - this token will be active
+	Matches.RelegateMatchesByID( id, t )
 
 	switch ft {
 	case "start":
