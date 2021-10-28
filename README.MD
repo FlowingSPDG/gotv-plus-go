@@ -96,7 +96,7 @@ WantedBy=multi-user.target
 - RtDelay/RcVage Support
 - Front end support
 - Internal gRPC API
-- CDN Support(Tested with Google Cloud CDN)
+- CDN Support(Tested with Cloudflare / Google Cloud CDN)
 - Hidden args support (F/A). F=fragment specification w/o sync request,  A = Play from [1]frag with sync request
 
 ## TODO
