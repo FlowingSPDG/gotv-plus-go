@@ -143,11 +143,11 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 		fragnumber--
 	}
 
-	f, err := m.GetFullFrame(fragnumber - Delay)
+	delayed, err := m.GetFullFrame(fragnumber - Delay)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("FULL TICK[%d]\n", f.Tick)
+	log.Printf("FULL TICK[%d]\n", delayed.Tick)
 
 	d, err := m.GetDeltaFrame(fragnumber - Delay)
 	if err != nil {
@@ -156,24 +156,40 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 	log.Printf("DELTA TICK[%d]\n", d.EndTick)
 
 	latest, _ := m.GetFullFrame(fragnumber)
-	rt := time.Since(f.At)
-	rc := time.Since(latest.At)
 
 	s := &SyncJSON{
-		Tick:           f.Tick,
+		Tick:           delayed.Tick,
+		TokenRedirect:  "token/" + m.Token,
 		Endtick:        d.EndTick,
-		RealTimeDelay:  rt.Seconds(),
-		ReceiveAge:     rc.Seconds(),
+		RealTimeDelay:  time.Since(delayed.At).Seconds(),
+		ReceiveAge:     time.Since(latest.At).Seconds(),
 		Fragment:       fragnumber - Delay,
 		SignupFragment: m.SignupFragment,
 		TickPerSecond:  m.Tps,
 		// KeyframeInterval: 3,
 		Map:      m.Map,
-		Protocol: 4,
+		Protocol: m.Protocol,
 	}
 
 	return s, nil
 }
+
+// RelegateMatchesByID Relegates matches matching ID, but not matching token
+func (m *MatchesEngine) RelegateMatchesByID(id string, token string) error {
+	if m.Matches == nil {
+		return fmt.Errorf("m.Matches == nil")
+	}
+	m.Lock()
+	defer m.Unlock()
+	for i := range m.Matches {
+		if m.Matches[i].ID == id && m.Matches[i].Token != token {
+			// Make sure that ID will not match any other request, but can match if need to search for ID and Token
+			m.Matches[i].ID = m.Matches[i].ID + "/" + m.Matches[i].Token
+		}
+	}
+	return nil
+}
+
 func (m *Match) SaveMatchToFile(filename string) error {
 	log.Printf("Saving match %s to file...\n", m.Token)
 
@@ -233,7 +249,6 @@ func (m *Match) SaveMatchToFile(filename string) error {
 	}
 	log.Printf("Writed to %s. %dbytes\n", file.Name(), totalbytes)
 	return nil
-
 }
 
 type MatchesEngine struct {
@@ -412,6 +427,7 @@ type SyncJSON struct {
 	SignupFragment   uint32  `json:"signup_fragment"`
 	TickPerSecond    uint32  `json:"tps"`
 	KeyframeInterval float64 `json:"keyframe_interval,omitempty"`
+	TokenRedirect    string  `json:"token_redirect,omitempty"`
 	Map              string  `json:"map"`
 	Protocol         uint8   `json:"protocol"`
 }

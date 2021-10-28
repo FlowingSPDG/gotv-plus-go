@@ -31,6 +31,63 @@ There are several hidden options that is not on document. I haven't covored all 
 - "C" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" c`) will play match from `1` fragment. CS:GO client **WILL NOT** send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync . CS:GO client will get 1st fragment directly.
 - "B" Option / Skips dem_stop control frame(?)
 
+## Example with Public CDN
+In this example we run the application with user `gotv`, and then use NGINX to proxy TCP/80 (HTTP) and TCP/443 (HTTPS) traffic to the application. 
+We advice that you limit who can send POST requests (CS:GO servers external/internal IP address) directly to the service with local firewall (iptables, nftables etc), this is the reason why we limit in NGINX all requests to only GET. 
+
+We use two page rules on Cloudflare. We bypass Cache for all requests to /sync as we want that to be served directly from the application, and then cache everything on rest of the URL's. 
+
+```
+gotv.domain.com/*/sync
+Cache Level: Bypass
+gotv.domain.com/*
+Cache Level: Cache Everything
+```
+
+nginx config
+```
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	server_name _;
+	location / {
+		limit_except GET {
+			deny all;
+		}
+		proxy_pass http://ip.ip.ip.ip:port; # Address to the gotv-plus-go application.
+	}
+}
+server {
+	listen 443 ssl;
+	listen [::]:443 ssl;
+	ssl_certificate /etc/ssl/cloudflare/cloudflare-cert.pem;
+	ssl_certificate_key /etc/ssl/cloudflare/cloudflare-key.key;
+	server_name gotv.domain.com;
+	location / {
+		limit_except GET {
+			deny all;
+		}
+		proxy_pass http://ip.ip.ip.ip:port; # Address to the gotv-plus-go application.
+	}
+}
+```
+
+simple systemd service
+```
+[Unit]
+Description=GOTV+ service
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=gotv
+WorkingDirectory=/path/to/gotv # Required as the application needs template
+ExecStart=/path/to/gotv_plus -addr ip.ip.ip.ip:port -auth gopher
+[Install]
+WantedBy=multi-user.target
+```
 
 ## Features
 - Multi matches Support

@@ -58,6 +58,9 @@ func main() {
 	r.GET("/match/id/:id/:fragment_number", handlers.SyncByIDHandler)
 	r.GET("/match/id/:id/:fragment_number/:frametype", handlers.GetBodyByIDHandler)
 
+	// playcast "http://localhost:8080/match/id/YOUR_MATCH_ID"
+	r.GET("/match/id/:id/token/:token/:fragment_number/:frametype", handlers.GetBodyHandler)
+
 	// tv_broadcast_url "http://localhost:8080/token"
 	r.POST("/token/:token/:fragment_number/:frametype", handlers.PostBodyHandler)
 

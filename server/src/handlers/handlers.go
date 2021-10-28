@@ -1,7 +1,7 @@
 package handlers
 
 import (
-  "fmt"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -94,13 +94,13 @@ func SyncByIDHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-    c.JSON(http.StatusOK, json)
+		c.JSON(http.StatusOK, json)
 	}
 }
 
 // GetBodyHandler handles fragment request from CS:GO client
 func GetBodyHandler(c *gin.Context) {
-	c.Header("Cache-Control", "public, max-age=31536000")
+	c.Header("Cache-Control", "public, max-age=5400")
 	t := c.Params.ByName("token")
 	f := c.Params.ByName("fragment_number")
 
@@ -121,6 +121,7 @@ func GetBodyHandler(c *gin.Context) {
 	case "full":
 		full, err := m.GetFullFrame(frag)
 		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
@@ -129,6 +130,7 @@ func GetBodyHandler(c *gin.Context) {
 	case "delta":
 		delta, err := m.GetDeltaFrame(frag)
 		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
@@ -137,6 +139,7 @@ func GetBodyHandler(c *gin.Context) {
 	case "start":
 		start, err := m.GetStartFrame(frag)
 		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
@@ -150,7 +153,7 @@ func GetBodyHandler(c *gin.Context) {
 
 // GetBodyByIDHandler handles fragment request from CS:GO client
 func GetBodyByIDHandler(c *gin.Context) {
-	c.Header("Cache-Control", "public, max-age=31536000")
+	c.Header("Cache-Control", "public, max-age=5400")
 	id := c.Params.ByName("id")
 	f := c.Params.ByName("fragment_number")
 
@@ -164,6 +167,7 @@ func GetBodyByIDHandler(c *gin.Context) {
 
 	m, err := Matches.GetMatchByID(id)
 	if err != nil {
+		c.Header("Cache-Control", "public, max-age=3")
 		c.String(http.StatusNotFound, err.Error())
 		return
 	}
@@ -171,6 +175,7 @@ func GetBodyByIDHandler(c *gin.Context) {
 	case "full":
 		full, err := m.GetFullFrame(frag)
 		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
@@ -179,6 +184,7 @@ func GetBodyByIDHandler(c *gin.Context) {
 	case "delta":
 		delta, err := m.GetDeltaFrame(frag)
 		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
@@ -221,6 +227,10 @@ func PostBodyByIDHandler(c *gin.Context) {
 		c.String(http.StatusForbidden, "Failed to fetch request body")
 		return
 	}
+
+	// Make sure we relegate all stale matches streamed previously with the same ID
+	// but keep the match with the currently active token - this token will be active
+	Matches.RelegateMatchesByID(id, t)
 
 	switch ft {
 	case "start":
