@@ -6,9 +6,10 @@ import (
 	"log"
 	"net/http"
 
-        grpc "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc"
-        "github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
-        "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
+
+	grpc "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc"
+	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
 )
 
 var (

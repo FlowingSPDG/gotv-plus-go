@@ -10,9 +10,10 @@ import (
 	"sync"
 	"time"
 
-	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+
+	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
 )
 
 var (
