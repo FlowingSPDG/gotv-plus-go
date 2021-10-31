@@ -20,6 +20,4 @@ on:
 
     - name: Build binary
       run: |
-        export PATH=$PATH:$(go env GOPATH)/bin
-        cd server
-        make build
+        make build-all
