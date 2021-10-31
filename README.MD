@@ -40,34 +40,58 @@ We use two page rules on Cloudflare. We bypass Cache for all requests to /sync a
 ```
 gotv.domain.com/*/sync
 Cache Level: Bypass
+
 gotv.domain.com/*
 Cache Level: Cache Everything
 ```
 
 nginx config
 ```
+upstream ingest {
+        server ip.ip.ip.ip:port; # Address to the gotv-plus-go application.
+}
+
 server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
+
 	server_name _;
+
+	# Never cache /sync (required for Google CDN and others where you cant configure excluded URL's)
+	location ~* \/sync$ {
+		add_header Cache-Control "no-store";
+		proxy_pass http://ingest;
+	}
+
 	location / {
 		limit_except GET {
 			deny all;
 		}
-		proxy_pass http://ip.ip.ip.ip:port; # Address to the gotv-plus-go application.
+		proxy_pass http://ingest;
 	}
+
 }
+
 server {
 	listen 443 ssl;
 	listen [::]:443 ssl;
+
 	ssl_certificate /etc/ssl/cloudflare/cloudflare-cert.pem;
 	ssl_certificate_key /etc/ssl/cloudflare/cloudflare-key.key;
+
 	server_name gotv.domain.com;
+
+	# Never cache /sync (required for Google CDN and others where you cant configure excluded URL's)
+	location ~* \/sync$ {
+		add_header Cache-Control "no-store";
+		proxy_pass http://ingest;
+	}
+
 	location / {
 		limit_except GET {
 			deny all;
 		}
-		proxy_pass http://ip.ip.ip.ip:port; # Address to the gotv-plus-go application.
+		proxy_pass http://ingest;
 	}
 }
 ```
@@ -78,6 +102,7 @@ simple systemd service
 Description=GOTV+ service
 After=network.target
 StartLimitIntervalSec=0
+
 [Service]
 Type=simple
 Restart=always
@@ -85,6 +110,7 @@ RestartSec=1
 User=gotv
 WorkingDirectory=/path/to/gotv # Required as the application needs template
 ExecStart=/path/to/gotv_plus -addr ip.ip.ip.ip:port -auth gopher
+
 [Install]
 WantedBy=multi-user.target
 ```
