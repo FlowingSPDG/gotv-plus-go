@@ -40,24 +40,35 @@ type MatchesEngine struct {
 }
 
 // Register Register Match.
-func (m *MatchesEngine) Register(ms *Match) {
+func (m *MatchesEngine) Register(id string, token string, signupFragment uint32, tps uint32, mapname string, protocol uint8, auth string) {
 	if m.Matches == nil {
 		m.Matches = make(map[string]*Match)
 	}
 	m.Lock()
 	defer m.Unlock()
-	m.Matches[ms.Token] = ms
+	m.Matches[token] = &Match{
+		ID:             id,
+		Token:          token,
+		Startframe:     make(map[uint32]StartFragment),
+		Fullframes:     make(map[uint32]FullFragment),
+		Deltaframes:    make(map[uint32]DeltaFragment),
+		SignupFragment: signupFragment,
+		Tps:            tps,
+		Map:            mapname,
+		Protocol:       protocol,
+		Auth:           auth,
+	}
 }
 
 // Delete Delete Match and run GC.
-func (m *MatchesEngine) Delete(ms *Match) error {
+func (m *MatchesEngine) Delete(token string) error {
 	if m.Matches == nil {
 		return fmt.Errorf("m.Matches == nil")
 	}
 	m.Lock()
 	defer m.Unlock()
-	m.Matches[ms.Token] = nil
-	delete(m.Matches, ms.Token)
+	m.Matches[token] = nil
+	delete(m.Matches, token)
 	runtime.GC()
 	return nil
 }

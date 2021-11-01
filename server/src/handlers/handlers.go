@@ -132,7 +132,13 @@ func GetBodyHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", full.Body)
+		b, err := full.Load()
+		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", b)
 		return
 	case "delta":
 		delta, err := m.GetDeltaFrame(frag)
@@ -141,7 +147,13 @@ func GetBodyHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", delta.Body)
+		b, err := delta.Load()
+		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", b)
 		return
 	case "start":
 		start, err := m.GetStartFrame(frag)
@@ -150,7 +162,13 @@ func GetBodyHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", start.Body)
+		b, err := start.Load()
+		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", b)
 		return
 	default:
 		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("INVALID FRAME TYPE"))
@@ -186,7 +204,13 @@ func GetBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", full.Body)
+		b, err := full.Load()
+		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", b)
 		return
 	case "delta":
 		delta, err := m.GetDeltaFrame(frag)
@@ -195,7 +219,13 @@ func GetBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", delta.Body)
+		b, err := delta.Load()
+		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", b)
 		return
 	case "start":
 		start, err := m.GetStartFrame(frag)
@@ -203,7 +233,13 @@ func GetBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		c.Data(200, "application/octet-stream", start.Body)
+		b, err := start.Load()
+		if err != nil {
+			c.Header("Cache-Control", "public, max-age=3")
+			c.String(http.StatusNotFound, err.Error())
+			return
+		}
+		c.Data(200, "application/octet-stream", b)
 		return
 	default:
 		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("INVALID FRAME TYPE"))
@@ -249,18 +285,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 		}
 		tps := uint32(tpsF)
 		log.Printf("Received START Fragment. Register match... Token[%s] Tps[%d] Protocol[%d]\n", t, tps, protocol)
-		Matches.Register(&models.Match{
-			ID:             id,
-			Token:          t,
-			Startframe:     make(map[uint32]*models.Startframe),
-			Fullframes:     make(map[uint32]*models.Fullframe),
-			Deltaframes:    make(map[uint32]*models.Deltaframe),
-			SignupFragment: uint32(fragment),
-			Tps:            uint32(tps),
-			Map:            c.Query("map"),
-			Protocol:       uint8(protocol),
-			Auth:           auth,
-		})
+		Matches.Register(id, t, uint32(fragment), uint32(tps), c.Query("map"), uint8(protocol), auth)
 		m, err := Matches.GetMatchByToken(t)
 		if err != nil {
 			log.Printf("ERR : %v\n", err)
