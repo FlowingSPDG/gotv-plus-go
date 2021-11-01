@@ -2,25 +2,25 @@ package models
 
 import "time"
 
-// FragType Fragment type. Start(1), Full(2), or Delta(3).
-type FragType int
-
-const (
-	// FragTypeStart Fragment for "START" request.
-	FragTypeStart = iota + 1
-	// FragTypeFull Fragment for "FULL" request.
-	FragTypeFull
-	// FragTypeDelta Delta Fragment for "DELTA" request.
-	FragTypeDelta
-)
-
-// Fragment Fragment interface.
-type Fragment interface {
-	Type() FragType
+// StartFragment Fragment interface for "START" fragment.
+type StartFragment interface {
 	At() time.Time
-	Tick() uint64    // For full fragment
-	EndTick() uint64 // For delta fragment
+	Save([]byte) error
+	Load() ([]byte, error)
+}
 
+// FullFragment Fragment interface for "FULL" fragment.
+type FullFragment interface {
+	At() time.Time
+	Tick() uint64
+	Save([]byte) error
+	Load() ([]byte, error)
+}
+
+// DeltaFragment Fragment interface for "DELTA" fragment.
+type DeltaFragment interface {
+	At() time.Time
+	EndTick() uint64
 	Save([]byte) error
 	Load() ([]byte, error)
 }

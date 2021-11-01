@@ -1,16 +1,10 @@
 package models
 
 import (
-	"compress/gzip"
 	"fmt"
 	"log"
-	"os"
 	"sync"
 	"time"
-
-	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 )
 
 // Match Match itself.
@@ -22,9 +16,9 @@ type Match struct {
 
 	Delay uint32
 
-	Startframe  map[uint32]*Startframe // start frame data
-	Fullframes  map[uint32]*Fullframe  // full frame data
-	Deltaframes map[uint32]*Deltaframe // delta frame data
+	Startframe  map[uint32]StartFragment // start frame data
+	Fullframes  map[uint32]FullFragment  // full frame data
+	Deltaframes map[uint32]DeltaFragment // delta frame data
 
 	SignupFragment uint32 // sign up fragment for /sync
 	Tps            uint32 // tickrate per secs for /sync
@@ -37,9 +31,9 @@ type Match struct {
 }
 
 // RegisterStartFrame Register Startframe to match.
-func (m *Match) RegisterStartFrame(fragment uint32, start *Startframe, tps uint32) error {
+func (m *Match) RegisterStartFrame(fragment uint32, start StartFragment, tps uint32) error {
 	if m.Startframe == nil {
-		m.Startframe = make(map[uint32]*Startframe)
+		m.Startframe = make(map[uint32]StartFragment)
 	}
 	m.Lock()
 	defer m.Unlock()
@@ -50,9 +44,9 @@ func (m *Match) RegisterStartFrame(fragment uint32, start *Startframe, tps uint3
 }
 
 // RegisterFullFrame Register Fullframe to match.
-func (m *Match) RegisterFullFrame(fragment uint32, full *Fullframe) error {
+func (m *Match) RegisterFullFrame(fragment uint32, full FullFragment) error {
 	if m.Fullframes == nil {
-		m.Fullframes = make(map[uint32]*Fullframe)
+		m.Fullframes = make(map[uint32]FullFragment)
 	}
 	m.Lock()
 	defer m.Unlock()
@@ -62,9 +56,9 @@ func (m *Match) RegisterFullFrame(fragment uint32, full *Fullframe) error {
 }
 
 // RegisterDeltaFrame Register Deltaframe to match.
-func (m *Match) RegisterDeltaFrame(fragment uint32, delta *Deltaframe) error {
+func (m *Match) RegisterDeltaFrame(fragment uint32, delta DeltaFragment) error {
 	if m.Deltaframes == nil {
-		m.Deltaframes = make(map[uint32]*Deltaframe)
+		m.Deltaframes = make(map[uint32]DeltaFragment)
 	}
 	m.Lock()
 	defer m.Unlock()
@@ -74,7 +68,7 @@ func (m *Match) RegisterDeltaFrame(fragment uint32, delta *Deltaframe) error {
 }
 
 // GetStartFrame Get START frame by fragnumber.
-func (m *Match) GetStartFrame(fragnumber uint32) (*Startframe, error) {
+func (m *Match) GetStartFrame(fragnumber uint32) (StartFragment, error) {
 	m.Lock()
 	defer m.Unlock()
 	if f, ok := m.Startframe[fragnumber]; ok {
@@ -84,7 +78,7 @@ func (m *Match) GetStartFrame(fragnumber uint32) (*Startframe, error) {
 }
 
 // GetFullFrame Get FULL frame by fragnumber.
-func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
+func (m *Match) GetFullFrame(fragnumber uint32) (FullFragment, error) {
 	m.Lock()
 	defer m.Unlock()
 	if f, ok := m.Fullframes[fragnumber]; ok {
@@ -94,7 +88,7 @@ func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
 }
 
 // GetDeltaFrame Get DELTA frame by fragnumber.
-func (m *Match) GetDeltaFrame(fragnumber uint32) (*Deltaframe, error) {
+func (m *Match) GetDeltaFrame(fragnumber uint32) (DeltaFragment, error) {
 	m.Lock()
 	defer m.Unlock()
 	if f, ok := m.Deltaframes[fragnumber]; ok {
@@ -151,11 +145,11 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 	latest, _ := m.GetFullFrame(fragnumber)
 
 	s := &SyncJSON{
-		Tick:           delayed.Tick,
+		Tick:           delayed.Tick(),
 		TokenRedirect:  "token/" + m.Token,
-		Endtick:        d.EndTick,
-		RealTimeDelay:  time.Since(delayed.At).Seconds(),
-		ReceiveAge:     time.Since(latest.At).Seconds(),
+		Endtick:        d.EndTick(),
+		RealTimeDelay:  time.Since(delayed.At()).Seconds(),
+		ReceiveAge:     time.Since(latest.At()).Seconds(),
 		Fragment:       fragnumber - m.Delay,
 		SignupFragment: m.SignupFragment,
 		TickPerSecond:  m.Tps,
@@ -165,66 +159,4 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 	}
 
 	return s, nil
-}
-
-// SaveMatchToFile Save match to gzip protobuf file.
-func (m *Match) SaveMatchToFile(filename string) error {
-	log.Printf("Saving match %s to file...\n", m.Token)
-
-	file, err := os.Create(fmt.Sprintf("matches/%s.gz", filename))
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	binary := &pb.MatchBinary{
-		Id:             m.ID,
-		Token:          m.Token,
-		SignupFragment: m.SignupFragment,
-		StartFrame:     make([]*pb.StartFrameBinary, 0, len(m.Startframe)),
-		FullFrame:      make([]*pb.FullFrameBinary, 0, len(m.Fullframes)),
-		DeltaFrame:     make([]*pb.DeltaFrameBinary, 0, len(m.Deltaframes)),
-	}
-	for k, v := range m.Startframe {
-		t, _ := ptypes.TimestampProto(v.At)
-		binary.StartFrame = append(binary.StartFrame, &pb.StartFrameBinary{
-			Fragment: k,
-			Tps:      m.Tps,
-			Map:      m.Map,
-			Protocol: uint32(m.Protocol),
-			Body:     v.Body,
-			At:       t,
-		})
-	}
-
-	for k, v := range m.Fullframes {
-		t, _ := ptypes.TimestampProto(v.At)
-		binary.FullFrame = append(binary.FullFrame, &pb.FullFrameBinary{
-			Fragment: k,
-			Tick:     v.Tick,
-			Body:     v.Body,
-			At:       t,
-		})
-	}
-
-	for k, v := range m.Deltaframes {
-		binary.DeltaFrame = append(binary.DeltaFrame, &pb.DeltaFrameBinary{
-			Fragment: k,
-			Endtick:  v.EndTick,
-			Body:     v.Body,
-		})
-	}
-
-	data, err := proto.Marshal(binary)
-	if err != nil {
-		return err
-	}
-	gzipwriter := gzip.NewWriter(file)
-	defer gzipwriter.Close()
-	totalbytes, err := gzipwriter.Write(data)
-	if err != nil {
-		return err
-	}
-	log.Printf("Writed to %s. %dbytes\n", file.Name(), totalbytes)
-	return nil
 }

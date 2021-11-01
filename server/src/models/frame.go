@@ -1,27 +1,5 @@
 package models
 
-import "time"
-
-// Startframe Fragment struct for "START" request.
-type Startframe struct {
-	At   time.Time
-	Body []byte
-}
-
-// Fullframe Fragment struct for "FULL" request.
-type Fullframe struct {
-	At   time.Time
-	Tick uint64
-	Body []byte
-}
-
-// Deltaframe Fragment struct for "DELTA" request.
-type Deltaframe struct {
-	At      time.Time
-	Body    []byte
-	EndTick uint64
-}
-
 // SyncJSON JSON struct for /sync request.
 type SyncJSON struct {
 	Tick             uint64  `json:"tick"`
