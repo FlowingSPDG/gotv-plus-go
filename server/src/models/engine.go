@@ -84,7 +84,7 @@ func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 		Token:          buf.Token,
 		Startframe:     make(map[uint32]*Startframe),
 		Fullframes:     make(map[uint32]*Fullframe),
-		Deltaframes:    make(map[uint32]*Deltaframes),
+		Deltaframes:    make(map[uint32]*Deltaframe),
 		Tps:            buf.StartFrame[0].Tps,
 		Map:            buf.StartFrame[0].Map,
 		Protocol:       uint8(buf.StartFrame[0].Protocol),
@@ -116,7 +116,7 @@ func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 
 	deltas := make([]uint32, 0, len(match.Deltaframes))
 	for _, v := range buf.DeltaFrame {
-		match.Deltaframes[v.Fragment] = &Deltaframes{
+		match.Deltaframes[v.Fragment] = &Deltaframe{
 			EndTick: v.Endtick,
 			Body:    v.Body,
 		}
