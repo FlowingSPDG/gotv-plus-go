@@ -167,6 +167,7 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 	return s, nil
 }
 
+// SaveMatchToFile Save match to gzip protobuf file.
 func (m *Match) SaveMatchToFile(filename string) error {
 	log.Printf("Saving match %s to file...\n", m.Token)
 
