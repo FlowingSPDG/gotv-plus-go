@@ -102,4 +102,4 @@ WantedBy=multi-user.target
 ## TODO
 - Dynamic auth system
 - Rich Front end support
-- Hidden args support (C/B). C=play from first? B=?
+- Hidden args support (C/B). C=play from first? B=Skips dem_skip command
