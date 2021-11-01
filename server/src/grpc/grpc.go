@@ -98,13 +98,7 @@ func (s server) MarkID(ctx context.Context, message *pb.MarkIDRequest) (*pb.Mark
 			Errormessage: err.Error(),
 		}, nil
 	}
-	err = m.TagID(message.GetId())
-	if err != nil {
-		return &pb.MarkIDReply{
-			Error:        true,
-			Errormessage: err.Error(),
-		}, nil
-	}
+	m.TagID(message.GetId())
 	return &pb.MarkIDReply{
 		Error:        false,
 		Errormessage: "",

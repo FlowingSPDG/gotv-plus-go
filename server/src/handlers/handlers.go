@@ -17,6 +17,7 @@ import (
 // POST /:token/:fragment_number/:frametype
 
 var (
+	// Matches Matches Engine itself.
 	Matches *models.MatchesEngine
 )
 
@@ -253,7 +254,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 			Token:          t,
 			Startframe:     make(map[uint32]*models.Startframe),
 			Fullframes:     make(map[uint32]*models.Fullframe),
-			Deltaframes:    make(map[uint32]*models.Deltaframes),
+			Deltaframes:    make(map[uint32]*models.Deltaframe),
 			SignupFragment: uint32(fragment),
 			Tps:            uint32(tps),
 			Map:            c.Query("map"),
@@ -306,7 +307,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 
 		// final...?
 
-		m.RegisterDeltaFrame(uint32(fragment), &models.Deltaframes{
+		m.RegisterDeltaFrame(uint32(fragment), &models.Deltaframe{
 			At:      time.Now(),
 			Body:    reqBody,
 			EndTick: uint64(endtick),
@@ -357,7 +358,7 @@ func PostBodyHandler(c *gin.Context) {
 			Token:          t,
 			Startframe:     make(map[uint32]*models.Startframe),
 			Fullframes:     make(map[uint32]*models.Fullframe),
-			Deltaframes:    make(map[uint32]*models.Deltaframes),
+			Deltaframes:    make(map[uint32]*models.Deltaframe),
 			SignupFragment: uint32(fragment),
 			Tps:            uint32(tps),
 			Map:            c.Query("map"),
@@ -405,7 +406,7 @@ func PostBodyHandler(c *gin.Context) {
 
 		// final...?
 
-		m.RegisterDeltaFrame(uint32(fragment), &models.Deltaframes{
+		m.RegisterDeltaFrame(uint32(fragment), &models.Deltaframe{
 			At:      time.Now(),
 			Body:    reqBody,
 			EndTick: uint64(endtick),

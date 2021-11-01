@@ -13,6 +13,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 )
 
+// Match Match itself.
 type Match struct {
 	sync.Mutex
 	ID    string // Manually tagged ID.
@@ -21,9 +22,9 @@ type Match struct {
 
 	Delay uint32
 
-	Startframe  map[uint32]*Startframe  // start frame data
-	Fullframes  map[uint32]*Fullframe   // full frame data
-	Deltaframes map[uint32]*Deltaframes // delta frame data
+	Startframe  map[uint32]*Startframe // start frame data
+	Fullframes  map[uint32]*Fullframe  // full frame data
+	Deltaframes map[uint32]*Deltaframe // delta frame data
 
 	SignupFragment uint32 // sign up fragment for /sync
 	Tps            uint32 // tickrate per secs for /sync
@@ -35,6 +36,7 @@ type Match struct {
 	Latest uint32 // latest fragment number
 }
 
+// RegisterStartFrame Register Startframe to match.
 func (m *Match) RegisterStartFrame(fragment uint32, start *Startframe, tps uint32) error {
 	if m.Startframe == nil {
 		m.Startframe = make(map[uint32]*Startframe)
@@ -47,6 +49,7 @@ func (m *Match) RegisterStartFrame(fragment uint32, start *Startframe, tps uint3
 	return nil
 }
 
+// RegisterFullFrame Register Fullframe to match.
 func (m *Match) RegisterFullFrame(fragment uint32, full *Fullframe) error {
 	if m.Fullframes == nil {
 		m.Fullframes = make(map[uint32]*Fullframe)
@@ -58,9 +61,10 @@ func (m *Match) RegisterFullFrame(fragment uint32, full *Fullframe) error {
 	return nil
 }
 
-func (m *Match) RegisterDeltaFrame(fragment uint32, delta *Deltaframes) error {
+// RegisterDeltaFrame Register Deltaframe to match.
+func (m *Match) RegisterDeltaFrame(fragment uint32, delta *Deltaframe) error {
 	if m.Deltaframes == nil {
-		m.Deltaframes = make(map[uint32]*Deltaframes)
+		m.Deltaframes = make(map[uint32]*Deltaframe)
 	}
 	m.Lock()
 	defer m.Unlock()
@@ -69,6 +73,7 @@ func (m *Match) RegisterDeltaFrame(fragment uint32, delta *Deltaframes) error {
 	return nil
 }
 
+// GetStartFrame Get START frame by fragnumber.
 func (m *Match) GetStartFrame(fragnumber uint32) (*Startframe, error) {
 	m.Lock()
 	defer m.Unlock()
@@ -78,6 +83,7 @@ func (m *Match) GetStartFrame(fragnumber uint32) (*Startframe, error) {
 	return nil, fmt.Errorf("Not Found")
 }
 
+// GetFullFrame Get FULL frame by fragnumber.
 func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
 	m.Lock()
 	defer m.Unlock()
@@ -87,7 +93,8 @@ func (m *Match) GetFullFrame(fragnumber uint32) (*Fullframe, error) {
 	return nil, fmt.Errorf("Not Found")
 }
 
-func (m *Match) GetDeltaFrame(fragnumber uint32) (*Deltaframes, error) {
+// GetDeltaFrame Get DELTA frame by fragnumber.
+func (m *Match) GetDeltaFrame(fragnumber uint32) (*Deltaframe, error) {
 	m.Lock()
 	defer m.Unlock()
 	if f, ok := m.Deltaframes[fragnumber]; ok {
@@ -96,11 +103,12 @@ func (m *Match) GetDeltaFrame(fragnumber uint32) (*Deltaframes, error) {
 	return nil, fmt.Errorf("Not Found")
 }
 
-func (m *Match) TagID(id string) error {
+// TagID Tag match ID.
+func (m *Match) TagID(id string) {
 	m.ID = id
-	return nil
 }
 
+// IsSyncReady Check requested fragnumber is ready for /sync request.
 func (m *Match) IsSyncReady(fragnumber uint32) bool {
 	_, err := m.GetDeltaFrame(fragnumber)
 	if err != nil {
@@ -116,6 +124,7 @@ func (m *Match) IsSyncReady(fragnumber uint32) bool {
 	return true
 }
 
+// Sync Get SyncJSON.
 func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 	for {
 		if fragnumber > m.Latest {

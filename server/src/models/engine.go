@@ -40,6 +40,7 @@ func (m *MatchesEngine) RelegateMatchesByID(id string, token string) error {
 	return nil
 }
 
+// MatchesEngine Match/Fragment Manager engine.
 type MatchesEngine struct {
 	sync.Mutex
 	Matches map[string]*Match // string=token
@@ -47,6 +48,7 @@ type MatchesEngine struct {
 	Delay   uint32
 }
 
+// Register Register Match.
 func (m *MatchesEngine) Register(ms *Match) {
 	if m.Matches == nil {
 		m.Matches = make(map[string]*Match)
@@ -56,6 +58,7 @@ func (m *MatchesEngine) Register(ms *Match) {
 	m.Matches[ms.Token] = ms
 }
 
+// LoadMatchFromFile Load match from gzip compressed file
 func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 	if m.Matches == nil {
 		m.Matches = make(map[string]*Match)
@@ -126,6 +129,7 @@ func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 	return match.ID, nil
 }
 
+// Delete Delete Match and run GC.
 func (m *MatchesEngine) Delete(ms *Match) error {
 	if m.Matches == nil {
 		return fmt.Errorf("m.Matches == nil")
@@ -138,7 +142,8 @@ func (m *MatchesEngine) Delete(ms *Match) error {
 	return nil
 }
 
-func (m *MatchesEngine) GetTokens() ([]string, error) { // Gets tokens as slice
+// GetTokens Gets tokens as slice. THIS IS NOT SORTED.
+func (m *MatchesEngine) GetTokens() ([]string, error) {
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
@@ -151,7 +156,8 @@ func (m *MatchesEngine) GetTokens() ([]string, error) { // Gets tokens as slice
 	return tokens, nil
 }
 
-func (m *MatchesEngine) GetAll() ([]*Match, error) { // Gets tokens as slice
+// GetAll Gets tokens as slice
+func (m *MatchesEngine) GetAll() ([]*Match, error) {
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
@@ -164,7 +170,8 @@ func (m *MatchesEngine) GetAll() ([]*Match, error) { // Gets tokens as slice
 	return matches, nil
 }
 
-func (m *MatchesEngine) GetMatchByToken(token string) (*Match, error) { // Gets tokens
+// GetMatchByToken Get Match pointer by token string.
+func (m *MatchesEngine) GetMatchByToken(token string) (*Match, error) {
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
 	}
@@ -176,6 +183,7 @@ func (m *MatchesEngine) GetMatchByToken(token string) (*Match, error) { // Gets 
 	return nil, fmt.Errorf("not found")
 }
 
+// GetMatchByID Get Match pointer by id string.
 func (m *MatchesEngine) GetMatchByID(id string) (*Match, error) { // Gets tokens
 	if m.Matches == nil {
 		return nil, fmt.Errorf("m.Matches == nil")
