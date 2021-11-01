@@ -8,11 +8,17 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/FlowingSPDG/gotv-plus-go/server/src/models"
 )
 
 // GET  /match/:token/sync
 // GET  /match/:token/:fragment_number/:frametype
 // POST /:token/:fragment_number/:frametype
+
+var (
+	Matches *models.MatchesEngine
+)
 
 // SyncHandler handlers request against /match/:token/sync
 func SyncHandler(c *gin.Context) {
@@ -242,12 +248,12 @@ func PostBodyByIDHandler(c *gin.Context) {
 		}
 		tps := uint32(tpsF)
 		log.Printf("Received START Fragment. Register match... Token[%s] Tps[%d] Protocol[%d]\n", t, tps, protocol)
-		Matches.Register(&Match{
+		Matches.Register(&models.Match{
 			ID:             id,
 			Token:          t,
-			Startframe:     make(map[uint32]*Startframe),
-			Fullframes:     make(map[uint32]*Fullframe),
-			Deltaframes:    make(map[uint32]*Deltaframes),
+			Startframe:     make(map[uint32]*models.Startframe),
+			Fullframes:     make(map[uint32]*models.Fullframe),
+			Deltaframes:    make(map[uint32]*models.Deltaframes),
 			SignupFragment: uint32(fragment),
 			Tps:            uint32(tps),
 			Map:            c.Query("map"),
@@ -260,7 +266,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 			c.String(http.StatusNotFound, err.Error())
 			return
 		}
-		m.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody}, uint32(tps))
+		m.RegisterStartFrame(uint32(fragment), &models.Startframe{At: time.Now(), Body: reqBody}, uint32(tps))
 
 		c.String(http.StatusOK, "OK")
 	case "full":
@@ -277,7 +283,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 		}
 		// log.Printf("tick = %d\n", tick)
 
-		m.RegisterFullFrame(uint32(fragment), &Fullframe{
+		m.RegisterFullFrame(uint32(fragment), &models.Fullframe{
 			At:   time.Now(),
 			Tick: uint64(tick),
 			Body: reqBody,
@@ -300,7 +306,7 @@ func PostBodyByIDHandler(c *gin.Context) {
 
 		// final...?
 
-		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
+		m.RegisterDeltaFrame(uint32(fragment), &models.Deltaframes{
 			At:      time.Now(),
 			Body:    reqBody,
 			EndTick: uint64(endtick),
@@ -347,11 +353,11 @@ func PostBodyHandler(c *gin.Context) {
 			return
 		}
 		tps := uint32(tpsF)
-		match := &Match{
+		match := &models.Match{
 			Token:          t,
-			Startframe:     make(map[uint32]*Startframe),
-			Fullframes:     make(map[uint32]*Fullframe),
-			Deltaframes:    make(map[uint32]*Deltaframes),
+			Startframe:     make(map[uint32]*models.Startframe),
+			Fullframes:     make(map[uint32]*models.Fullframe),
+			Deltaframes:    make(map[uint32]*models.Deltaframes),
 			SignupFragment: uint32(fragment),
 			Tps:            uint32(tps),
 			Map:            c.Query("map"),
@@ -359,7 +365,7 @@ func PostBodyHandler(c *gin.Context) {
 			Auth:           auth,
 		}
 		log.Printf("Received START Fragment. Register match... Token[%s] Tps[%d] Protocol[%d]\n", t, tps, protocol)
-		match.RegisterStartFrame(uint32(fragment), &Startframe{At: time.Now(), Body: reqBody}, uint32(tps))
+		match.RegisterStartFrame(uint32(fragment), &models.Startframe{At: time.Now(), Body: reqBody}, uint32(tps))
 		Matches.Register(match)
 		c.String(http.StatusOK, "OK")
 	case "full":
@@ -376,7 +382,7 @@ func PostBodyHandler(c *gin.Context) {
 		}
 		// log.Printf("tick = %d\n", tick)
 
-		m.RegisterFullFrame(uint32(fragment), &Fullframe{
+		m.RegisterFullFrame(uint32(fragment), &models.Fullframe{
 			At:   time.Now(),
 			Tick: uint64(tick),
 			Body: reqBody,
@@ -399,7 +405,7 @@ func PostBodyHandler(c *gin.Context) {
 
 		// final...?
 
-		m.RegisterDeltaFrame(uint32(fragment), &Deltaframes{
+		m.RegisterDeltaFrame(uint32(fragment), &models.Deltaframes{
 			At:      time.Now(),
 			Body:    reqBody,
 			EndTick: uint64(endtick),

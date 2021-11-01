@@ -1,4 +1,4 @@
-package handlers
+package models
 
 import (
 	"compress/gzip"
@@ -16,18 +16,12 @@ import (
 	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
 )
 
-var (
-	Matches *MatchesEngine
-	Auth    string
-	Delay   uint32
-)
-
 // InitMatchEngine Initializes MatchEngine
-func InitMatchEngine(auth string, delay uint32) {
-	Delay = delay
-	Matches = &MatchesEngine{
+func InitMatchEngine(auth string, delay uint32) *MatchesEngine {
+	return &MatchesEngine{
 		Matches: make(map[string]*Match),
 		Auth:    auth, //  tv_broadcast_origin_auth "gopher"
+		Delay:   delay,
 	}
 }
 
@@ -36,6 +30,8 @@ type Match struct {
 	ID    string // Manually tagged ID.
 	Token string // Match token
 	Auth  string // auth for POST auths
+
+	Delay uint32
 
 	Startframe  map[uint32]*Startframe  // start frame data
 	Fullframes  map[uint32]*Fullframe   // full frame data
@@ -143,13 +139,13 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 		fragnumber--
 	}
 
-	delayed, err := m.GetFullFrame(fragnumber - Delay)
+	delayed, err := m.GetFullFrame(fragnumber - m.Delay)
 	if err != nil {
 		return nil, err
 	}
 	log.Printf("FULL TICK[%d]\n", delayed.Tick)
 
-	d, err := m.GetDeltaFrame(fragnumber - Delay)
+	d, err := m.GetDeltaFrame(fragnumber - m.Delay)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +159,7 @@ func (m *Match) Sync(fragnumber uint32) (*SyncJSON, error) {
 		Endtick:        d.EndTick,
 		RealTimeDelay:  time.Since(delayed.At).Seconds(),
 		ReceiveAge:     time.Since(latest.At).Seconds(),
-		Fragment:       fragnumber - Delay,
+		Fragment:       fragnumber - m.Delay,
 		SignupFragment: m.SignupFragment,
 		TickPerSecond:  m.Tps,
 		// KeyframeInterval: 3,
@@ -331,7 +327,7 @@ func (m *MatchesEngine) LoadMatchFromFile(path string) (string, error) {
 		deltas = append(deltas, v.Fragment)
 	}
 
-	Matches.Register(match)
+	m.Register(match)
 
 	log.Printf("Loaded match from %s. Available Full list : [%v], Delta : [%v]\n", file.Name(), fulls, deltas)
 	return match.ID, nil

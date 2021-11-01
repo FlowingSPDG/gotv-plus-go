@@ -7,6 +7,6 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/mitchellh/gox v1.0.1 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.41.0
 )

@@ -9,6 +9,7 @@ import (
 
 	pb "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc/protogen"
 	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
+	"github.com/FlowingSPDG/gotv-plus-go/server/src/models"
 )
 
 type server struct{}
@@ -41,7 +42,7 @@ func (s server) GetMatches(ctx context.Context, message *pb.GetMatchesRequest) (
 func (s server) GetMatch(ctx context.Context, message *pb.GetMatchRequest) (*pb.Match, error) {
 	log.Println("[gRPC] GetMatch")
 
-	var match *handlers.Match
+	var match *models.Match
 	var err error
 	ids := message.GetIds()
 	switch i := ids.(type) {
@@ -67,7 +68,7 @@ func (s server) DeleteMatch(ctx context.Context, message *pb.DeleteMatchRequest)
 	log.Println("[gRPC] DeleteMatch")
 
 	ids := message.GetIds()
-	var match *handlers.Match
+	var match *models.Match
 	var err error
 	switch i := ids.(type) {
 	case *pb.DeleteMatchRequest_Id:
@@ -113,7 +114,7 @@ func (s server) MarkID(ctx context.Context, message *pb.MarkIDRequest) (*pb.Mark
 func (s server) SaveMatchToFile(ctx context.Context, message *pb.SaveMatchToFileRequest) (*pb.SaveMatchToFileReply, error) {
 	log.Println("[gRPC] SaveMatchToFile")
 	ids := message.GetIds()
-	var match *handlers.Match
+	var match *models.Match
 	var err error
 	switch i := ids.(type) {
 	case *pb.SaveMatchToFileRequest_Id:

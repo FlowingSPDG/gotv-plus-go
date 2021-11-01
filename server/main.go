@@ -10,6 +10,7 @@ import (
 
 	grpc "github.com/FlowingSPDG/gotv-plus-go/server/src/grpc"
 	"github.com/FlowingSPDG/gotv-plus-go/server/src/handlers"
+	"github.com/FlowingSPDG/gotv-plus-go/server/src/models"
 )
 
 var (
@@ -18,6 +19,8 @@ var (
 	grpcaddr = flag.String("grpc", "localhost:50055", "gRPC API Address")
 	delay    = flag.Int("delay", 6, "How much frags to delay.")
 	auth     = flag.String("auth", "gopher", "GOTV+ Auth password")
+
+	me *models.MatchesEngine
 )
 
 func init() {
@@ -29,14 +32,12 @@ func init() {
 	} else {
 		gin.DefaultWriter = ioutil.Discard
 	}
-	handlers.InitMatchEngine(*auth, uint32(*delay))
+	handlers.Matches = models.InitMatchEngine(*auth, uint32(*delay))
 	go grpc.StartGRPC(*grpcaddr)
 }
 
 func main() {
-
 	r := gin.Default()
-
 	r.LoadHTMLGlob("templates/*.tmpl")
 
 	r.GET("/", func(c *gin.Context) {
