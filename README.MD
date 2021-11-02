@@ -1,4 +1,4 @@
-# GOTV+ for Go  
+# GOTV+ Broadcast Server written in Go  
 
 ## Author
 Shugo Kawamura  
@@ -7,28 +7,44 @@ Twitter : [**@rjzefl**](http://twitter.com/rjzefl) / [**@FlowingSPDG**](http://t
 
 ## About
 This is [GOTV+](https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Broadcast) broadcast server written in Go and Gin.  
-`tv_broadcast` sends GOTV fragment data API server,and API server relays fragment data for CS:GO Clients.  
-CS:GO clients will get those fragments through HTTP,so viewer can play GOTV like a demo file.(e.g. Shift+F2 demoui, 1/4 speed play, HLAE and other external effects.)  
-Also you can add CDN for GOTV+ for multi region stable connections such as Major tournament.  
   
-Basically this is same with [kunalpowar/csgo-broadacst](https://github.com/kunalpowar/csgo-broadcast)(Go with mux) and [S5Projects/csgo-broadcast](https://github.com/S5Projects/csgo-broadcast)(NodeJS/TypeScript with Express).  
+GOTV+ is an extension of GOTV where you use HTTP(S) to distribute instead of connecting to a regular GOTV. This makes it easy to serve many more clients around the world with high quality GOTV as you can distribute the content with CDN's.  
+Using `tv_broadcast` cvars you will enable GOTV+ on your CS:GO Server which will send fragmented data to the GOTV+ ingest (this application) which then serves them to clients which connects to it. The viewer will then watch the feed the same way you would when connecting directly to a GOTV instance.  
+  
+There are a few projects similar to this. [kunalpowar/csgo-broadacst](https://github.com/kunalpowar/csgo-broadcast)(Go with mux) and [S5Projects/csgo-broadcast](https://github.com/S5Projects/csgo-broadcast)(NodeJS/TypeScript with Express).  
 
 ## Usage
-- Launch GOTV+ Server(`go run ./main.go -addr YOURGLOBALIP:8080 -auth gopher`) or binary file : (`./gotv_plus -addr YOURGLOBALIP:8080 -auth gopher`)
-- Enable GOTV broadcast in CS:GO Server
-(`tv_enable 1;tv_broadcast_url "http://YOURGLOBALIP:8080/id/YOUR_MATCH_ID"; tv_broadcast_origin_auth "gopher"; tv_broadcast 1`)
-- Play broadcast by CS:GO Client(`playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID"`)
+- Launch GOTV+ Server  
+Directly using Go: `go run ./main.go -addr <IP-ADDRESS>:8080 -auth gopher`  
+Using precompiled binary: `./gotv_plus -addr <IP-ADDRESS>:8080 -auth gopher`  
+
+- Enable GOTV broadcast in CS:GO Server by adding this to server.cfg  
+`MATCH_ID` can be what ever you want!  
+```
+tv_enable 1
+tv_broadcast_url "http://<IP-ADDRESS>:8080/id/MATCH_ID"
+tv_broadcast_origin_auth "gopher"
+tv_broadcast 1
+```
+
+- Connect to GOTV+ from CS:GO Client  
+In console: `playcast "http://<IP-ADDRESS>:8080/match/id/MATCH_ID"`  
+
 ### Tips
-- You can get list of matches by http://localhost:8080/ .
-- You should configure `tv_broadcast_...` cvars **before** enable broadcast(`tv_broadcast 1`). And you may need to restart broadcast if you changed cvars.(`tv_broadcast 0;tv_broadcast 1`)
-- `playcast` and `tv_broadcast_url` URL needs to be wrapped by double quotes (e.g. `playcast "http://example.com/match/MATCH_ID"` .) because of `http:` colon(`:`) is recognized as command seprator for CS:GO.
-- `playcast` and `tv_broadcast_url` does not need slash(`/`) in last character of URL. for example `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID` works properly,however, `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/` **WILL NOT** work properly. because requested URL will be `http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID//sync` (Double-slash).
+- You can get list of matches by accessing `http://<IP-ADDRESS>:8080`.
+- You should configure `tv_broadcast_...` cvars **before** enable broadcast (`tv_broadcast 1`).  
+And you may need to restart broadcast if you changed cvars. (`tv_broadcast 0;tv_broadcast 1`).
+- `playcast` and `tv_broadcast_url` URL needs to be wrapped by double quotes (e.g. `playcast "http://<IP-ADDRESS>:8080/match/MATCH_ID"`) because of `http:` colon(`:`) is recognized as command seprator for CS:GO.
+- `playcast` and `tv_broadcast_url` does not need slash(`/`) in last character of URL.  
+For example `playcast "http://<IP-ADDRESS>:8080/match/id/MATCH_ID"` works properly,  
+while `playcast "http://<IP-ADDRESS>:8080/match/id/MATCH_ID/"` **WILL NOT** work properly.  
+Because requested URL will be ending with `//sync` (Double-slash).
 
 ## Hidden Options
-There are several hidden options that is not on document. I haven't covored all of these options,but some of them are supported.  
-- "F" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" f500`) will play match from `500` fragment. CS:GO client will send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync?fragment=500 .
-- "A" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" a`) will play match from `1` fragment. CS:GO client will send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync?fragment=1 .
-- "C" (e.g. `playcast "http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID" c`) will play match from `1` fragment. CS:GO client **WILL NOT** send request to http://YOURGLOBALIP:8080/match/id/YOUR_MATCH_ID/sync . CS:GO client will get 1st fragment directly.
+There are several hidden options that are not documented. I haven't covered all of the options, but some of them are supported.   
+- "F" (e.g. `playcast "http://<IP-ADDRESS>:8080/match/id/MATCH_ID" f500`) will play match from `500` fragment. CS:GO client will send request to `http://<IP-ADDRESS>:8080/match/id/MATCH_ID/sync?fragment=500`
+- "A" (e.g. `playcast "http://<IP-ADDRESS>:8080/match/id/MATCH_ID" a`) will play match from `1` fragment. CS:GO client will send request to `http://<IP-ADDRESS>:8080/match/id/MATCH_ID/sync?fragment=1`
+- "C" (e.g. `playcast "http://<IP-ADDRESS>:8080/match/id/MATCH_ID" c`) will play match from `1` fragment. CS:GO client **WILL NOT** send request to `http://<IP-ADDRESS>:8080/match/id/MATCH_ID/sync`, CS:GO client will get 1st fragment directly.
 - "B" Option / Skips dem_stop control frame(?)
 
 ## Example with Public CDN
@@ -38,17 +54,17 @@ We advice that you limit who can send POST requests (CS:GO servers external/inte
 We use two page rules on Cloudflare. We bypass Cache for all requests to /sync as we want that to be served directly from the application, and then cache everything on rest of the URL's. 
 
 ```
-gotv.domain.com/*/sync
+gotv.example.com/*/sync
 Cache Level: Bypass
 
-gotv.domain.com/*
+gotv.example.com/*
 Cache Level: Cache Everything
 ```
 
 nginx config
 ```
 upstream ingest {
-        server ip.ip.ip.ip:port; # Address to the gotv-plus-go application.
+        server <IP-ADDRESS>:8080; # Address to the gotv-plus-go application.
 }
 
 server {
@@ -63,6 +79,7 @@ server {
 		proxy_pass http://ingest;
 	}
 
+	# Only allow GET requests
 	location / {
 		limit_except GET {
 			deny all;
@@ -79,7 +96,7 @@ server {
 	ssl_certificate /etc/ssl/cloudflare/cloudflare-cert.pem;
 	ssl_certificate_key /etc/ssl/cloudflare/cloudflare-key.key;
 
-	server_name gotv.domain.com;
+	server_name gotv.example.com;
 
 	# Never cache /sync (required for Google CDN and others where you cant configure excluded URL's)
 	location ~* \/sync$ {
@@ -87,6 +104,7 @@ server {
 		proxy_pass http://ingest;
 	}
 
+	# Only allow GET requests
 	location / {
 		limit_except GET {
 			deny all;
@@ -109,7 +127,7 @@ Restart=always
 RestartSec=1
 User=gotv
 WorkingDirectory=/path/to/gotv # Required as the application needs template
-ExecStart=/path/to/gotv_plus -addr ip.ip.ip.ip:port -auth gopher
+ExecStart=/path/to/gotv_plus -addr <IP-ADDRESS>:8080 -auth gopher
 
 [Install]
 WantedBy=multi-user.target
