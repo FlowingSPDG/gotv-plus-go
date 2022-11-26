@@ -12,7 +12,7 @@ import (
 func CheckAuthMiddlewareGin(g Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Param("token")
-		auth := c.Request.Header.Get(authHeader)
+		auth := c.Request.Header.Get("X-Origin-Auth")
 		if auth == "" {
 			c.String(http.StatusUnauthorized, "tv_broadcast_origin_auth required")
 			c.Abort()

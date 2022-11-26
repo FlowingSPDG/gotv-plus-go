@@ -4,30 +4,26 @@ import (
 	"time"
 )
 
-const (
-	authHeader = "X-Origin-Auth"
-)
-
 // Store Store interface is call-back interface for Storing GOTV+ fragments. WRITE ONLY OPERATION.
 type Store interface {
 	Auth(token string, auth string) error
-	OnStart(token string, f StartFrame) error
-	OnFull(token string, f FullFrame) error
-	OnDelta(token string, f DeltaFrame) error
+	OnStart(token string, fragment int, f StartFrame) error
+	OnFull(token string, fragment int, f FullFrame) error
+	OnDelta(token string, fragment int, f DeltaFrame) error
 }
 
 // Broadcaster GOTV+ broadcasts GOTV+ demo fragments to CS:GO playcast clients. READ ONLY OPERATION.
 type Broadcaster interface {
-	GetSync(token string) error
+	GetSync(token string) (Sync, error)
 	GetStart(token string, fragment int) ([]byte, error) // could be io.Reader??
-	GetFull(token string, fragment int, tick int) ([]byte, error)
-	GetDelta(token string, fragment int, endtick int) ([]byte, error)
+	GetFull(token string, fragment int) ([]byte, error)
+	GetDelta(token string, fragment int) ([]byte, error)
 }
 
 // StartFrame Start fragment
 type StartFrame struct {
 	At       time.Time
-	Tps      int
+	Tps      float64 // Even though it is int, we should use float64 because server sends its value as "128.0"
 	Protocol int
 	Map      string
 	Body     []byte

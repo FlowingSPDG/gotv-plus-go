@@ -12,11 +12,12 @@ import (
 )
 
 func main() {
-	m := inmemory.NewInmemoryGOTV()
+	m := inmemory.NewInmemoryGOTV("SuperSecureStringDoNotShare")
 	app := fiber.New()
 	g := app.Group("/gotv") // /gotv
 	g.Use(logger.New())
 	gotv.SetupStoreHandlers(m, g)
+	gotv.SetupBroadcasterHandlers(m, g)
 
 	p := net.JoinHostPort("localhost", "8080")
 

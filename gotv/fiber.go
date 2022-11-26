@@ -1,27 +1,39 @@
 package gotv
 
 import (
+	"log"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
+	"golang.org/x/xerrors"
 )
 
-// Query Query for request
-type Query struct {
-	Tick     int    `query:"tick" form:"tick"`          // the starting tick of the broadcast
-	EndTick  int    `query:"endtick" query:"endtick"`   // endtick of delta frame
-	Final    bool   `query:"final" query:"final"`       // is final fragment
-	TPS      int    `query:"tps" query:"tps"`           // the tickrate of the GOTV broadcast
-	Map      string `query:"map" query:"map"`           // the name of the map
-	Protocol int    `query:"protocol" query:"protocol"` // Currently 4
+// StartQuery Query for START request
+type StartQuery struct {
+	Tick     int     `query:"tick" form:"tick"`         // the starting tick of the broadcast
+	TPS      float64 `query:"tps" form:"tps"`           // the tickrate of the GOTV broadcast. // 実際はintだが128.0 という小数点付きで送られてくるのでfloatに設定する
+	Map      string  `query:"map" form:"map"`           // the name of the map
+	Protocol int     `query:"protocol" form:"protocol"` // Currently 4
+}
+
+// FullQuery Query for FULL request
+type FullQuery struct {
+	Tick int `query:"tick" form:"tick"` // the starting tick of the broadcast
+}
+
+// DeltaQuery Query for DELTA request
+type DeltaQuery struct {
+	EndTick int  `query:"endtick" form:"endtick"` // endtick of delta frame
+	Final   bool `query:"final" form:"final"`     // is final fragment
 }
 
 // CheckAuthMiddlewareFiber Check Auth on Fiber
 func CheckAuthMiddlewareFiber(g Store) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		hs := c.GetReqHeaders()
-		auth, ok := hs[authHeader]
+		auth, ok := hs["X-Origin-Auth"]
 		if !ok {
 			return c.Status(fiber.StatusUnauthorized).SendString("tv_broadcast_origin_auth required")
 		}
@@ -37,17 +49,31 @@ func CheckAuthMiddlewareFiber(g Store) func(c *fiber.Ctx) error {
 func OnStartFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		q := Query{}
+		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		if err != nil {
+			return err
+		}
+		q := StartQuery{}
 		if err := c.QueryParser(&q); err != nil {
+			log.Println("Failed to parse query:", err)
 			return c.Status(fiber.StatusBadRequest).SendString("BadRequest:" + err.Error())
 		}
-		return g.OnStart(token, StartFrame{
+		if err := g.OnStart(token, fragment, StartFrame{
 			At:       time.Now(),
 			Tps:      q.TPS,
 			Protocol: q.Protocol,
 			Map:      q.Map,
 			Body:     utils.CopyBytes(c.Body()),
-		})
+		}); err != nil {
+			if xerrors.Is(err, ErrMatchNotFound) {
+				return c.Status(fiber.StatusResetContent).SendString("RESET CONTENT")
+			}
+			if xerrors.Is(err, ErrFragmentNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("FRAGMENT NOT FOUND")
+			}
+			return err
+		}
+		return nil
 	})
 }
 
@@ -55,15 +81,28 @@ func OnStartFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 func OnFullFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		q := Query{}
+		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		if err != nil {
+			return err
+		}
+		q := FullQuery{}
 		if err := c.QueryParser(&q); err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("BadRequest:" + err.Error())
 		}
-		return g.OnFull(token, FullFrame{
+		if err := g.OnFull(token, fragment, FullFrame{
 			At:   time.Now(),
 			Tick: q.Tick,
 			Body: utils.CopyBytes(c.Body()),
-		})
+		}); err != nil {
+			if xerrors.Is(err, ErrMatchNotFound) {
+				return c.Status(fiber.StatusResetContent).SendString("RESET CONTENT")
+			}
+			if xerrors.Is(err, ErrFragmentNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("FRAGMENT NOT FOUND")
+			}
+			return err
+		}
+		return nil
 	})
 }
 
@@ -71,16 +110,113 @@ func OnFullFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 func OnDeltaFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		q := Query{}
+		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		if err != nil {
+			return err
+		}
+		q := DeltaQuery{}
 		if err := c.QueryParser(&q); err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("BadRequest:" + err.Error())
 		}
-		return g.OnDelta(token, DeltaFrame{
+		if err := g.OnDelta(token, fragment, DeltaFrame{
 			At:      time.Now(),
 			Final:   q.Final,
 			EndTick: q.EndTick,
 			Body:    utils.CopyBytes(c.Body()),
-		})
+		}); err != nil {
+			if xerrors.Is(err, ErrMatchNotFound) {
+				return c.Status(fiber.StatusResetContent).SendString("RESET CONTENT")
+			}
+			if xerrors.Is(err, ErrFragmentNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("FRAGMENT NOT FOUND")
+			}
+			return err
+		}
+		return nil
+	})
+}
+
+// GetSyncRequestHandlerFiber Register start fragment on Fiber
+func GetSyncRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
+	return (func(c *fiber.Ctx) error {
+		token := utils.CopyString(c.Params("token"))
+		s, err := b.GetSync(token)
+		if err != nil {
+			if xerrors.Is(err, ErrMatchNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("MATCH NOT FOUND")
+			}
+			if xerrors.Is(err, ErrFragmentNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("FRAGMENT NOT FOUND")
+			}
+			return err
+		}
+		return c.JSON(s)
+	})
+}
+
+// GetStartRequestHandlerFiber Get start fragment on Fiber
+func GetStartRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
+	return (func(c *fiber.Ctx) error {
+		token := utils.CopyString(c.Params("token"))
+		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		if err != nil {
+			return err
+		}
+		s, err := b.GetStart(token, fragment)
+		if err != nil {
+			if xerrors.Is(err, ErrMatchNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("MATCH NOT FOUND")
+			}
+			if xerrors.Is(err, ErrFragmentNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("FRAGMENT NOT FOUND")
+			}
+			return err
+		}
+		return c.Status(fiber.StatusOK).Send(s)
+	})
+}
+
+// GetFullRequestHandlerFiber Get start fragment on Fiber
+func GetFullRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
+	return (func(c *fiber.Ctx) error {
+		token := utils.CopyString(c.Params("token"))
+		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		if err != nil {
+			return err
+		}
+		s, err := b.GetFull(token, fragment)
+		if err != nil {
+			if xerrors.Is(err, ErrMatchNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("MATCH NOT FOUND")
+			}
+			if xerrors.Is(err, ErrFragmentNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("FRAGMENT NOT FOUND")
+			}
+			return err
+		}
+		return c.Status(fiber.StatusOK).Send(s)
+	})
+}
+
+// GetDeltaRequestHandlerFiber Get delta fragment on Fiber
+func GetDeltaRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
+	return (func(c *fiber.Ctx) error {
+		token := utils.CopyString(c.Params("token"))
+		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		if err != nil {
+			return err
+		}
+		d, err := b.GetDelta(token, fragment)
+		if err != nil {
+			if xerrors.Is(err, ErrMatchNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("MATCH NOT FOUND")
+			}
+			if xerrors.Is(err, ErrFragmentNotFound) {
+				return c.Status(fiber.StatusNotFound).SendString("FRAGMENT NOT FOUND")
+			}
+			return err
+		}
+		return c.Status(fiber.StatusOK).Send(d)
 	})
 }
 
@@ -89,4 +225,12 @@ func SetupStoreHandlers(g Store, r fiber.Router) {
 	r.Post("/:token/:fragment_number/start", CheckAuthMiddlewareFiber(g), OnStartFragmentHandlerFiber(g))
 	r.Post("/:token/:fragment_number/full", CheckAuthMiddlewareFiber(g), OnFullFragmentHandlerFiber(g))
 	r.Post("/:token/:fragment_number/delta", CheckAuthMiddlewareFiber(g), OnDeltaFragmentHandlerFiber(g))
+}
+
+// SetupBroadcasterHandlers setup Broadcaster handlers to specified fiber.Router
+func SetupBroadcasterHandlers(b Broadcaster, r fiber.Router) {
+	r.Get("/:token/sync", GetSyncRequestHandlerFiber(b))
+	r.Get("/:token/:fragment_number/start", GetStartRequestHandlerFiber(b))
+	r.Get("/:token/:fragment_number/full", GetFullRequestHandlerFiber(b))
+	r.Get("/:token/:fragment_number/delta", GetDeltaRequestHandlerFiber(b))
 }
