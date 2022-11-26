@@ -201,14 +201,14 @@ func GetDeltaRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
 }
 
 // SetupStoreHandlers setup Store handlers to specified fiber.Router
-func SetupStoreHandlers(g Store, r fiber.Router) {
+func SetupStoreHandlersFiber(g Store, r fiber.Router) {
 	r.Post("/:token/:fragment_number/start", CheckAuthMiddlewareFiber(g), OnStartFragmentHandlerFiber(g))
 	r.Post("/:token/:fragment_number/full", CheckAuthMiddlewareFiber(g), OnFullFragmentHandlerFiber(g))
 	r.Post("/:token/:fragment_number/delta", CheckAuthMiddlewareFiber(g), OnDeltaFragmentHandlerFiber(g))
 }
 
 // SetupBroadcasterHandlers setup Broadcaster handlers to specified fiber.Router
-func SetupBroadcasterHandlers(b Broadcaster, r fiber.Router) {
+func SetupBroadcasterHandlersFiber(b Broadcaster, r fiber.Router) {
 	r.Get("/:token/sync", GetSyncRequestHandlerFiber(b))
 	r.Get("/:token/:fragment_number/start", GetStartRequestHandlerFiber(b))
 	r.Get("/:token/:fragment_number/full", GetFullRequestHandlerFiber(b))

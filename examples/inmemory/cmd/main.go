@@ -26,8 +26,8 @@ func main() {
 	app := fiber.New()
 	g := app.Group("/gotv") // /gotv
 	g.Use(logger.New())
-	gotv.SetupStoreHandlers(m, g)
-	gotv.SetupBroadcasterHandlers(m, g)
+	gotv.SetupStoreHandlersFiber(m, g)
+	gotv.SetupBroadcasterHandlersFiber(m, g)
 
 	p := fmt.Sprintf("%s:%d", "", port)
 
