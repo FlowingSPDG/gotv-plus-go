@@ -10,25 +10,6 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// StartQuery Query for START request
-type StartQuery struct {
-	Tick     int     `query:"tick" form:"tick"`         // the starting tick of the broadcast
-	TPS      float64 `query:"tps" form:"tps"`           // the tickrate of the GOTV broadcast. // 実際はintだが128.0 という小数点付きで送られてくるのでfloatに設定する
-	Map      string  `query:"map" form:"map"`           // the name of the map
-	Protocol int     `query:"protocol" form:"protocol"` // Currently 4
-}
-
-// FullQuery Query for FULL request
-type FullQuery struct {
-	Tick int `query:"tick" form:"tick"` // the starting tick of the broadcast
-}
-
-// DeltaQuery Query for DELTA request
-type DeltaQuery struct {
-	EndTick int  `query:"endtick" form:"endtick"` // endtick of delta frame
-	Final   bool `query:"final" form:"final"`     // is final fragment
-}
-
 // CheckAuthMiddlewareFiber Check Auth on Fiber
 func CheckAuthMiddlewareFiber(g Store) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
