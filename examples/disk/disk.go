@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 
 	"github.com/FlowingSPDG/gotv-plus-go/gotv"
 	"golang.org/x/xerrors"
@@ -109,12 +110,12 @@ func (d *Disk) GetSync(token string, fragment int) (gotv.Sync, error) {
 }
 
 // OnDelta implements gotv.Store
-func (d *Disk) OnDelta(token string, fragment int, df gotv.DeltaFrame) error {
-	return os.WriteFile(d.deltaFramePath(token, fragment), df.Body, 0755)
+func (d *Disk) OnDelta(token string, fragment int, endtick int, at time.Time, final bool, b []byte) error {
+	return os.WriteFile(d.deltaFramePath(token, fragment), b, 0755)
 }
 
 // OnFull implements gotv.Store
-func (d *Disk) OnFull(token string, fragment int, ff gotv.FullFrame) error {
+func (d *Disk) OnFull(token string, fragment int, tick int, at time.Time, b []byte) error {
 	s := gotv.Sync{}
 	b, err := os.ReadFile(d.syncPath(token))
 	if err != nil {
@@ -127,7 +128,7 @@ func (d *Disk) OnFull(token string, fragment int, ff gotv.FullFrame) error {
 		return err
 	}
 	s.Fragment = fragment
-	s.Tick = ff.Tick
+	s.Tick = tick
 	b, err = json.Marshal(s)
 	if err != nil {
 		return err
@@ -135,7 +136,7 @@ func (d *Disk) OnFull(token string, fragment int, ff gotv.FullFrame) error {
 	if err := os.WriteFile(d.syncPath(token), b, 0755); err != nil {
 		return err
 	}
-	return os.WriteFile(d.fullFramePath(token, fragment), ff.Body, 0755)
+	return os.WriteFile(d.fullFramePath(token, fragment), b, 0755)
 }
 
 // OnStart implements gotv.Store

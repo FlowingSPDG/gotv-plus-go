@@ -70,11 +70,7 @@ func OnFullFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 		if err := c.QueryParser(&q); err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("BadRequest:" + err.Error())
 		}
-		if err := g.OnFull(token, fragment, FullFrame{
-			At:   time.Now(),
-			Tick: q.Tick,
-			Body: utils.CopyBytes(c.Body()),
-		}); err != nil {
+		if err := g.OnFull(token, fragment, q.Tick, time.Now(), utils.CopyBytes(c.Body())); err != nil {
 			if xerrors.Is(err, ErrMatchNotFound) {
 				return c.Status(fiber.StatusResetContent).SendString("RESET CONTENT")
 			}
@@ -99,12 +95,7 @@ func OnDeltaFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 		if err := c.QueryParser(&q); err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("BadRequest:" + err.Error())
 		}
-		if err := g.OnDelta(token, fragment, DeltaFrame{
-			At:      time.Now(),
-			Final:   q.Final,
-			EndTick: q.EndTick,
-			Body:    utils.CopyBytes(c.Body()),
-		}); err != nil {
+		if err := g.OnDelta(token, fragment, q.EndTick, time.Now(), q.Final, utils.CopyBytes(c.Body())); err != nil {
 			if xerrors.Is(err, ErrMatchNotFound) {
 				return c.Status(fiber.StatusResetContent).SendString("RESET CONTENT")
 			}

@@ -28,27 +28,26 @@ type InMemory struct {
 type match struct {
 	sync.RWMutex
 	ReceiveAge     time.Time
+	Latest         int
 	SignupFragment int
 	TickPerSecond  float64
 	Protocol       int
 	Start          map[int]*gotv.StartFrame // key=fragment_number
-	Full           map[int]*gotv.FullFrame  // key=fragment_number
-	LastFull       int
-	LastDelta      int
-	Delta          map[int]*gotv.DeltaFrame // key=fragment_number
+	Fragments      map[int]*gotv.Fragment   // key=fragment_number
 	Map            string
 }
 
 func (m *InMemory) newMatchIfEmpty(token string) {
 	if _, ok := m.match[token]; !ok {
 		m.match[token] = &match{
+			RWMutex:        sync.RWMutex{},
 			ReceiveAge:     time.Time{},
 			SignupFragment: 0,
 			TickPerSecond:  0,
 			Protocol:       0,
 			Start:          map[int]*gotv.StartFrame{},
-			Full:           map[int]*gotv.FullFrame{},
-			Delta:          map[int]*gotv.DeltaFrame{},
+			Fragments:      map[int]*gotv.Fragment{},
+			Map:            "",
 		}
 	}
 }
@@ -71,10 +70,7 @@ func (m *InMemory) isSyncReady(token string, fragment int) bool {
 	if !ok {
 		return false
 	}
-	if _, ok := match.Full[fragment]; !ok {
-		return false
-	}
-	if _, ok := match.Delta[fragment]; !ok {
+	if _, ok := match.Fragments[fragment]; !ok {
 		return false
 	}
 	return true
@@ -91,15 +87,15 @@ func (m *InMemory) GetSyncLatest(token string) (gotv.Sync, error) {
 	if !ok {
 		return gotv.Sync{}, gotv.ErrMatchNotFound
 	}
-	if !m.isSyncReady(token, match.LastFull-m.delay) {
+	if !m.isSyncReady(token, match.Latest-m.delay) {
 		return gotv.Sync{}, gotv.ErrFragmentNotFound
 	}
 	return gotv.Sync{
-		Tick:             match.Full[match.LastFull-m.delay].Tick,
-		Endtick:          match.Delta[match.LastDelta-m.delay].EndTick,
-		RealTimeDelay:    time.Since(match.Full[match.LastFull-m.delay].At).Seconds(),
+		Tick:             match.Fragments[match.Latest-m.delay].Tick,
+		Endtick:          match.Fragments[match.Latest-m.delay].EndTick,
+		RealTimeDelay:    time.Since(match.Fragments[match.Latest-m.delay].At).Seconds(),
 		ReceiveAge:       time.Since(match.ReceiveAge).Seconds(),
-		Fragment:         match.LastFull - m.delay,
+		Fragment:         match.Latest - m.delay,
 		SignupFragment:   match.SignupFragment,
 		TickPerSecond:    int(match.TickPerSecond),
 		KeyframeInterval: 3, // ?
@@ -125,9 +121,9 @@ func (m *InMemory) GetSync(token string, fragment int) (gotv.Sync, error) {
 	}
 	now := time.Now()
 	return gotv.Sync{
-		Tick:             match.Full[fragment].Tick,
-		Endtick:          match.Delta[fragment].EndTick,
-		RealTimeDelay:    (now.Sub(match.Full[fragment].At)).Seconds(),
+		Tick:             match.Fragments[fragment].Tick,
+		Endtick:          match.Fragments[fragment].EndTick,
+		RealTimeDelay:    (now.Sub(match.Fragments[fragment].At)).Seconds(),
 		ReceiveAge:       (now.Sub(match.ReceiveAge)).Seconds(),
 		Fragment:         fragment,
 		SignupFragment:   match.SignupFragment,
@@ -150,11 +146,11 @@ func (m *InMemory) GetDelta(token string, fragment int) ([]byte, error) {
 	if !ok {
 		return nil, gotv.ErrMatchNotFound
 	}
-	b, ok := match.Delta[fragment]
+	b, ok := match.Fragments[fragment]
 	if !ok {
 		return nil, gotv.ErrMatchNotFound
 	}
-	return b.Body, nil
+	return b.Delta, nil
 }
 
 // GetFull implements gotv.Broadcaster
@@ -168,11 +164,11 @@ func (m *InMemory) GetFull(token string, fragment int) ([]byte, error) {
 	if !ok {
 		return nil, gotv.ErrMatchNotFound
 	}
-	b, ok := match.Full[fragment]
+	b, ok := match.Fragments[fragment]
 	if !ok {
 		return nil, gotv.ErrMatchNotFound
 	}
-	return b.Body, nil
+	return b.Full, nil
 }
 
 // GetStart implements gotv.Broadcaster
@@ -207,27 +203,36 @@ func (m *InMemory) OnStart(token string, fragment int, f gotv.StartFrame) error 
 }
 
 // OnFull implements gotv.Store
-func (m *InMemory) OnFull(token string, fragment int, f gotv.FullFrame) error {
+func (m *InMemory) OnFull(token string, fragment int, tick int, at time.Time, b []byte) error {
 	m.Lock()
 	defer m.Unlock()
 	if !m.isMatchExist(token) {
 		return gotv.ErrMatchNotFound
 	}
-	m.match[token].Full[fragment] = &f
-	m.match[token].LastFull = fragment
+	if m.match[token].Fragments[fragment] == nil {
+		m.match[token].Fragments[fragment] = &gotv.Fragment{}
+	}
+	m.match[token].Fragments[fragment].At = at
+	m.match[token].Fragments[fragment].Tick = tick
+	m.match[token].Fragments[fragment].Full = b
+	m.match[token].Latest = fragment
 	m.match[token].ReceiveAge = time.Now()
 	return nil
 }
 
 // OnDelta implements gotv.Store
-func (m *InMemory) OnDelta(token string, fragment int, f gotv.DeltaFrame) error {
+func (m *InMemory) OnDelta(token string, fragment int, endtick int, at time.Time, final bool, b []byte) error {
 	m.Lock()
 	defer m.Unlock()
 	if !m.isMatchExist(token) {
 		return gotv.ErrMatchNotFound
 	}
-	m.match[token].Delta[fragment] = &f
-	m.match[token].LastDelta = fragment
+	if m.match[token].Fragments[fragment] == nil {
+		m.match[token].Fragments[fragment] = &gotv.Fragment{}
+	}
+	m.match[token].Fragments[fragment].EndTick = endtick
+	m.match[token].Fragments[fragment].Final = final
+	m.match[token].Fragments[fragment].Delta = b
 	return nil
 }
 

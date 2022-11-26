@@ -8,8 +8,8 @@ import (
 type Store interface {
 	Auth(token string, auth string) error
 	OnStart(token string, fragment int, f StartFrame) error
-	OnFull(token string, fragment int, f FullFrame) error
-	OnDelta(token string, fragment int, f DeltaFrame) error
+	OnFull(token string, fragment int, tick int, at time.Time, b []byte) error
+	OnDelta(token string, fragment int, endtick int, at time.Time, final bool, b []byte) error
 }
 
 // Broadcaster GOTV+ broadcasts GOTV+ demo fragments to CS:GO playcast clients. READ ONLY OPERATION.
@@ -21,6 +21,16 @@ type Broadcaster interface {
 	GetDelta(token string, fragment int) ([]byte, error)
 }
 
+// Fragment has both of Full/Delta fragment data
+type Fragment struct {
+	At      time.Time
+	Tick    int
+	Final   bool
+	EndTick int
+	Full    []byte
+	Delta   []byte
+}
+
 // StartFrame Start fragment
 type StartFrame struct {
 	At       time.Time
@@ -28,21 +38,6 @@ type StartFrame struct {
 	Protocol int
 	Map      string
 	Body     []byte
-}
-
-// FullFrame Full Fragment
-type FullFrame struct {
-	At   time.Time
-	Tick int
-	Body []byte
-}
-
-// DeltaFrame Delta fragment
-type DeltaFrame struct {
-	At      time.Time
-	Final   bool
-	EndTick int
-	Body    []byte
 }
 
 // Sync /sync JSON
