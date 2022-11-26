@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/FlowingSPDG/gotv-plus-go/gotv"
+	"golang.org/x/xerrors"
 )
 
 //
@@ -41,7 +42,7 @@ func (d *Disk) syncPath(token string) string {
 func (d *Disk) GetDelta(token string, fragment int) ([]byte, error) {
 	b, err := os.ReadFile(d.deltaFramePath(token, fragment))
 	if err != nil {
-		if err == os.ErrNotExist {
+		if xerrors.Is(err, os.ErrNotExist) {
 			return nil, gotv.ErrFragmentNotFound
 		}
 		return nil, err
@@ -53,7 +54,7 @@ func (d *Disk) GetDelta(token string, fragment int) ([]byte, error) {
 func (d *Disk) GetFull(token string, fragment int) ([]byte, error) {
 	b, err := os.ReadFile(d.fullFramePath(token, fragment))
 	if err != nil {
-		if err == os.ErrNotExist {
+		if xerrors.Is(err, os.ErrNotExist) {
 			return nil, gotv.ErrFragmentNotFound
 		}
 		return nil, err
@@ -66,7 +67,7 @@ func (d *Disk) GetStart(token string, fragment int) ([]byte, error) {
 	b, err := os.ReadFile(d.startFramePath(token, fragment))
 	if err != nil {
 		if err == os.ErrNotExist {
-			return nil, gotv.ErrFragmentNotFound
+			return nil, gotv.ErrMatchNotFound
 		}
 		return nil, err
 	}
@@ -78,8 +79,8 @@ func (d *Disk) GetSync(token string) (gotv.Sync, error) {
 	ret := gotv.Sync{}
 	b, err := os.ReadFile(d.syncPath(token))
 	if err != nil {
-		if err == os.ErrNotExist {
-			return ret, gotv.ErrFragmentNotFound
+		if xerrors.Is(err, os.ErrNotExist) {
+			return ret, gotv.ErrMatchNotFound
 		}
 		return ret, err
 	}
@@ -97,11 +98,45 @@ func (d *Disk) OnDelta(token string, fragment int, df gotv.DeltaFrame) error {
 
 // OnFull implements gotv.Store
 func (d *Disk) OnFull(token string, fragment int, ff gotv.FullFrame) error {
+	s := gotv.Sync{}
+	b, err := os.ReadFile(d.syncPath(token))
+	if err != nil {
+		if xerrors.Is(err, os.ErrNotExist) {
+			return gotv.ErrMatchNotFound
+		}
+		return err
+	}
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	s.Fragment = fragment
+	s.Tick = ff.Tick
+	b, err = json.Marshal(s)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(d.syncPath(token), b, 0755); err != nil {
+		return err
+	}
 	return os.WriteFile(d.fullFramePath(token, fragment), ff.Body, 0755)
 }
 
 // OnStart implements gotv.Store
 func (d *Disk) OnStart(token string, fragment int, sf gotv.StartFrame) error {
+	s := gotv.Sync{
+		Fragment:       fragment,
+		SignupFragment: fragment,
+		TickPerSecond:  int(sf.Tps),
+		Map:            sf.Map,
+		Protocol:       sf.Protocol,
+	}
+	b, err := json.Marshal(s)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(d.syncPath(token), b, 0755); err != nil {
+		return err
+	}
 	return os.WriteFile(d.startFramePath(token, fragment), sf.Body, 0755)
 }
 
