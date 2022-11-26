@@ -21,6 +21,7 @@ type InMemory struct {
 	sync.RWMutex
 	password string            // password is Engine-global
 	match    map[string]*match // key=token value=match
+	delay    int               // frag delay
 }
 
 // match SYNC should NOT belong to match
@@ -65,44 +66,73 @@ func (m *InMemory) Auth(token string, auth string) error {
 	return nil
 }
 
-func (m *InMemory) isSyncReady(token string) bool {
+func (m *InMemory) isSyncReady(token string, fragment int) bool {
 	match, ok := m.match[token]
 	if !ok {
 		return false
 	}
-	if _, ok := match.Full[match.LastFull]; !ok {
+	if _, ok := match.Full[fragment]; !ok {
 		return false
 	}
-	if _, ok := match.Delta[match.LastDelta]; !ok {
+	if _, ok := match.Delta[fragment]; !ok {
 		return false
 	}
 	return true
 }
 
-// GetSync implements gotv.Broadcaster
-func (m *InMemory) GetSync(token string) (gotv.Sync, error) {
+// GetSyncLatest implements gotv.Broadcaster
+func (m *InMemory) GetSyncLatest(token string) (gotv.Sync, error) {
 	m.RLock()
 	defer m.RUnlock()
 	if !m.isMatchExist(token) {
 		return gotv.Sync{}, gotv.ErrMatchNotFound
 	}
-	if !m.isSyncReady(token) {
+	match, ok := m.match[token]
+	if !ok {
+		return gotv.Sync{}, gotv.ErrMatchNotFound
+	}
+	if !m.isSyncReady(token, match.LastFull-m.delay) {
 		return gotv.Sync{}, gotv.ErrFragmentNotFound
+	}
+	return gotv.Sync{
+		Tick:             match.Full[match.LastFull-m.delay].Tick,
+		Endtick:          match.Delta[match.LastDelta-m.delay].EndTick,
+		RealTimeDelay:    time.Since(match.Full[match.LastFull-m.delay].At).Seconds(),
+		ReceiveAge:       time.Since(match.ReceiveAge).Seconds(),
+		Fragment:         match.LastFull - m.delay,
+		SignupFragment:   match.SignupFragment,
+		TickPerSecond:    int(match.TickPerSecond),
+		KeyframeInterval: 3, // ?
+		TokenRedirect:    "token/" + token,
+		Map:              match.Map,
+		Protocol:         match.Protocol,
+	}, nil
+}
+
+// GetSync implements gotv.Broadcaster
+func (m *InMemory) GetSync(token string, fragment int) (gotv.Sync, error) {
+	m.RLock()
+	defer m.RUnlock()
+	if !m.isMatchExist(token) {
+		return gotv.Sync{}, gotv.ErrMatchNotFound
 	}
 	match, ok := m.match[token]
 	if !ok {
 		return gotv.Sync{}, gotv.ErrMatchNotFound
 	}
+	if !m.isSyncReady(token, fragment) {
+		return gotv.Sync{}, gotv.ErrFragmentNotFound
+	}
 	now := time.Now()
 	return gotv.Sync{
-		Tick:           match.Full[match.LastFull].Tick,
-		Endtick:        match.Delta[match.LastDelta].EndTick,
-		RealTimeDelay:  (now.Sub(match.Full[match.LastFull].At)).Seconds(),
-		ReceiveAge:     (now.Sub(match.ReceiveAge)).Seconds(),
-		Fragment:       match.LastFull,
-		SignupFragment: match.SignupFragment,
-		TickPerSecond:  int(match.TickPerSecond),
-		// KeyframeInterval: 0,
+		Tick:             match.Full[fragment].Tick,
+		Endtick:          match.Delta[fragment].EndTick,
+		RealTimeDelay:    (now.Sub(match.Full[fragment].At)).Seconds(),
+		ReceiveAge:       (now.Sub(match.ReceiveAge)).Seconds(),
+		Fragment:         fragment,
+		SignupFragment:   match.SignupFragment,
+		TickPerSecond:    int(match.TickPerSecond),
+		KeyframeInterval: 3, // ?
 		// TokenRedirect:    token,
 		Map:      match.Map,
 		Protocol: match.Protocol,
@@ -204,7 +234,9 @@ func (m *InMemory) OnDelta(token string, fragment int, f gotv.DeltaFrame) error 
 // NewInmemoryGOTV Get new pointer of inMemory GOTV+ Engine
 func NewInmemoryGOTV(password string) *InMemory {
 	return &InMemory{
+		RWMutex:  sync.RWMutex{},
 		password: password,
 		match:    map[string]*match{},
+		delay:    8,
 	}
 }

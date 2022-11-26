@@ -14,7 +14,8 @@ type Store interface {
 
 // Broadcaster GOTV+ broadcasts GOTV+ demo fragments to CS:GO playcast clients. READ ONLY OPERATION.
 type Broadcaster interface {
-	GetSync(token string) (Sync, error)
+	GetSync(token string, fragment int) (Sync, error)
+	GetSyncLatest(token string) (Sync, error)
 	GetStart(token string, fragment int) ([]byte, error) // could be io.Reader??
 	GetFull(token string, fragment int) ([]byte, error)
 	GetDelta(token string, fragment int) ([]byte, error)
@@ -61,10 +62,11 @@ type Sync struct {
 
 // StartQuery Query for START request
 type StartQuery struct {
-	Tick     int     `query:"tick" form:"tick"`         // the starting tick of the broadcast
-	TPS      float64 `query:"tps" form:"tps"`           // the tickrate of the GOTV broadcast. // 実際はintだが128.0 という小数点付きで送られてくるのでfloatに設定する
-	Map      string  `query:"map" form:"map"`           // the name of the map
-	Protocol int     `query:"protocol" form:"protocol"` // Currently 4
+	Tick             int     `query:"tick" form:"tick"` // the starting tick of the broadcast
+	TPS              float64 `query:"tps" form:"tps"`   // the tickrate of the GOTV broadcast. // 実際はintだが128.0 という小数点付きで送られてくるのでfloatに設定する
+	Map              string  `query:"map" form:"map"`   // the name of the map
+	KeyframeInterval float64 `json:"keyframe_interval,omitempty"`
+	Protocol         int     `query:"protocol" form:"protocol"` // Currently 4
 }
 
 // FullQuery Query for FULL request
@@ -76,4 +78,9 @@ type FullQuery struct {
 type DeltaQuery struct {
 	EndTick int  `query:"endtick" form:"endtick"` // endtick of delta frame
 	Final   bool `query:"final" form:"final"`     // is final fragment
+}
+
+// SyncQuery Query for SYNC request
+type SyncQuery struct {
+	Fragment int `query:"fragment" form:"fragment"` // endtick of delta frame
 }

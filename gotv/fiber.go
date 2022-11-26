@@ -121,7 +121,17 @@ func OnDeltaFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 func GetSyncRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		s, err := b.GetSync(token)
+		q := SyncQuery{}
+		if err := c.QueryParser(&q); err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("BadRequest:" + err.Error())
+		}
+		var s Sync
+		var err error
+		if q.Fragment != 0 {
+			s, err = b.GetSync(token, q.Fragment)
+		} else {
+			s, err = b.GetSyncLatest(token)
+		}
 		if err != nil {
 			if xerrors.Is(err, ErrMatchNotFound) {
 				return c.Status(fiber.StatusNotFound).SendString("MATCH NOT FOUND")

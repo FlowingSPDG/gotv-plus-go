@@ -74,8 +74,25 @@ func (d *Disk) GetStart(token string, fragment int) ([]byte, error) {
 	return b, err
 }
 
+// GetSyncLatest implements gotv.Broadcaster
+func (d *Disk) GetSyncLatest(token string) (gotv.Sync, error) {
+	ret := gotv.Sync{}
+	b, err := os.ReadFile(d.syncPath(token))
+	if err != nil {
+		if xerrors.Is(err, os.ErrNotExist) {
+			return ret, gotv.ErrMatchNotFound
+		}
+		return ret, err
+	}
+
+	if err := json.Unmarshal(b, &ret); err != nil {
+		return ret, err
+	}
+	return ret, nil
+}
+
 // GetSync implements gotv.Broadcaster
-func (d *Disk) GetSync(token string) (gotv.Sync, error) {
+func (d *Disk) GetSync(token string, fragment int) (gotv.Sync, error) {
 	ret := gotv.Sync{}
 	b, err := os.ReadFile(d.syncPath(token))
 	if err != nil {
