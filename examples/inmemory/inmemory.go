@@ -99,9 +99,9 @@ func (m *InMemory) GetSyncLatest(token string) (gotv.Sync, error) {
 		SignupFragment:   match.SignupFragment,
 		TickPerSecond:    int(match.TickPerSecond),
 		KeyframeInterval: 3, // ?
-		TokenRedirect:    "token/" + token,
-		Map:              match.Map,
-		Protocol:         match.Protocol,
+		// TokenRedirect:    "token/" + token,
+		Map:      match.Map,
+		Protocol: match.Protocol,
 	}, nil
 }
 
