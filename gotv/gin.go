@@ -10,8 +10,6 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// WIP: GOTV+の実装をGinで作る
-
 // CheckAuthMiddlewareGin Check Auth on Gin
 func CheckAuthMiddlewareGin(g Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
