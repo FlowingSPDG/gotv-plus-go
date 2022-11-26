@@ -1,7 +1,6 @@
 package gotv
 
 import (
-	"log"
 	"strconv"
 	"time"
 
@@ -36,7 +35,6 @@ func OnStartFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 		}
 		q := StartQuery{}
 		if err := c.QueryParser(&q); err != nil {
-			log.Println("Failed to parse query:", err)
 			return c.Status(fiber.StatusBadRequest).SendString("BadRequest:" + err.Error())
 		}
 		if err := g.OnStart(token, fragment, StartFrame{
