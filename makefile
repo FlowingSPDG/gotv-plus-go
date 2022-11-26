@@ -46,26 +46,3 @@ clean:
 	-@$(RM) $(DIST_DIR)/*
 deps-go:
 	@$(GOGET)
-# Cross compile for go
-build-prepare:
-	@cd ./server && $(GOGET) github.com/mitchellh/gox \
-	github.com/konsorten/go-windows-terminal-sequences
-build-all: clean build-linux build-windows build-mac
-build-linux: build-prepare
-	@cd ./server && gox \
-	-os="$(OS_Linux)" \
-	-arch="$(ARCH_AMD64)" \
-	--output "../$(DIST_DIR)/$(BINARY_NAME)_$(OS_Linux)_$(ARCH_AMD64)/$(BINARY_NAME)"
-	$(CP) ./server/templates $(DIST_DIR)/$(BINARY_NAME)_$(OS_Linux)_$(ARCH_AMD64)/
-build-windows: build-prepare
-	@cd ./server && gox \
-	-os="$(OS_Windows)" \
-	-arch="$(ARCH_AMD64)" \
-	--output "../$(DIST_DIR)/$(BINARY_NAME)_$(OS_Windows)_$(ARCH_AMD64)/$(BINARY_NAME)"
-	$(CP) ./server/templates $(DIST_DIR)/$(BINARY_NAME)_$(OS_Windows)_$(ARCH_AMD64)/
-build-mac: build-prepare
-	@cd ./server && gox \
-	-os="$(OS_Mac)" \
-	-arch="$(ARCH_AMD64)" \
-	--output "../$(DIST_DIR)/$(BINARY_NAME)_$(OS_Mac)_$(ARCH_AMD64)/$(BINARY_NAME)"
-	$(CP) ./server/templates $(DIST_DIR)/$(BINARY_NAME)_$(OS_Mac)_$(ARCH_AMD64)/
