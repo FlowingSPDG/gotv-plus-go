@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/FlowingSPDG/gotv-plus-go/server/src/util"
+	"github.com/FlowingSPDG/gotv-plus-go/util"
 )
 
 func TestParseToken(t *testing.T) {

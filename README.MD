@@ -3,10 +3,10 @@
 ## Author
 Shugo Kawamura  
 Github : [**FlowingSPDG**](http://github.com/FlowingSPDG)  
-Twitter : [**@FlowingSPDG**](http://twitter.com/FlowingSPDG) / [**@FlowingSPDG_EN**](http://twitter.com/FlowingSPDG_EN) / [**@_eyfl**](http://twitter.com/_eyfl)
+Twitter : [**@FlowingSPDG**](http://twitter.com/FlowingSPDG) / [**@FlowingSPDG_EN**](http://twitter.com/FlowingSPDG_EN)  
 
 ## About
-This is [GOTV+](https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Broadcast) broadcast server written in Go and Gin.  
+This is [GOTV+](https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Broadcast) broadcast server interface for Go(Fiber and Gin).  
   
 GOTV+ is an extension of GOTV where you use HTTP(S) to distribute instead of connecting to a regular GOTV. This makes it easy to serve many more clients around the world with high quality GOTV as you can distribute the content with CDN's.  
 Using `tv_broadcast` cvars you will enable GOTV+ on your CS:GO Server which will send fragmented data to the GOTV+ ingest (this application) which then serves them to clients which connects to it. The viewer will then watch the feed the same way you would when connecting directly to a GOTV instance.  
@@ -139,11 +139,8 @@ WantedBy=multi-user.target
 - Match Delete
 - RtDelay/RcVage Support
 - Front end support
-- Internal gRPC API
 - CDN Support(Tested with Cloudflare / Google Cloud CDN)
 - Hidden args support (F/A). F=fragment specification w/o sync request,  A = Play from [1]frag with sync request
 
 ## TODO
-- Dynamic auth system
-- Rich Front end support
 - Hidden args support (C/B). C=play from first? B=?
