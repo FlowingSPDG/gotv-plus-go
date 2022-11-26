@@ -30,7 +30,7 @@ func CheckAuthMiddlewareFiber(g Store) func(c *fiber.Ctx) error {
 func OnStartFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		fragment, err := strconv.Atoi(c.Params("fragment_number"))
 		if err != nil {
 			return err
 		}
@@ -62,7 +62,7 @@ func OnStartFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 func OnFullFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		fragment, err := strconv.Atoi(c.Params("fragment_number"))
 		if err != nil {
 			return err
 		}
@@ -87,7 +87,7 @@ func OnFullFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 func OnDeltaFragmentHandlerFiber(g Store) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		fragment, err := strconv.Atoi(c.Params("fragment_number"))
 		if err != nil {
 			return err
 		}
@@ -140,7 +140,7 @@ func GetSyncRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
 func GetStartRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		fragment, err := strconv.Atoi(c.Params("fragment_number"))
 		if err != nil {
 			return err
 		}
@@ -162,7 +162,7 @@ func GetStartRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
 func GetFullRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		fragment, err := strconv.Atoi(c.Params("fragment_number"))
 		if err != nil {
 			return err
 		}
@@ -184,7 +184,7 @@ func GetFullRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
 func GetDeltaRequestHandlerFiber(b Broadcaster) func(c *fiber.Ctx) error {
 	return (func(c *fiber.Ctx) error {
 		token := utils.CopyString(c.Params("token"))
-		fragment, err := strconv.Atoi(utils.CopyString(c.Params("fragment_number")))
+		fragment, err := strconv.Atoi(c.Params("fragment_number"))
 		if err != nil {
 			return err
 		}
