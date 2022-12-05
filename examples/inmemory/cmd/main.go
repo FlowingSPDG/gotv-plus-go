@@ -19,7 +19,7 @@ var (
 
 func main() {
 	flag.StringVar(&auth, "auth", "SuperSecureStringDoNotShare", "tv_broadcast_origin_auth \"SuperSecureStringDoNotShare\"")
-	flag.IntVar(&port, "port", 8080, "Port to listne")
+	flag.IntVar(&port, "port", 8080, "Port to listen")
 	flag.Parse()
 
 	m := inmemory.NewInmemoryGOTV(auth)
