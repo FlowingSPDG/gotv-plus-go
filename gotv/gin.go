@@ -274,6 +274,13 @@ func GetDeltaRequestHandlerGin(b Broadcaster) func(c *gin.Context) {
 	}
 }
 
+// SetupStoreHandlersGin setup Store handlers to gin.RouterGroup
+func SetupStoreHandlersGin(g Store, r *gin.RouterGroup) {
+	r.POST("/:token/:fragment_number/start", CheckAuthMiddlewareGin(g), OnStartFragmentHandlerGin(g))
+	r.POST("/:token/:fragment_number/full", CheckAuthMiddlewareGin(g), OnFullFragmentHandlerGin(g))
+	r.POST("/:token/:fragment_number/delta", CheckAuthMiddlewareGin(g), OnDeltaFragmentHandlerGin(g))
+}
+
 // SetupBroadcasterHandlersGin setup Broadcaster handlers to specified gin.RouterGroup
 func SetupBroadcasterHandlersGin(b Broadcaster, r *gin.RouterGroup) {
 	r.GET("/:token/sync", GetSyncRequestHandlerGin(b))
