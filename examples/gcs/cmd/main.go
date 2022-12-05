@@ -1,15 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 
+	"cloud.google.com/go/storage"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
+	"github.com/FlowingSPDG/gotv-plus-go/examples/gcs"
 	"github.com/FlowingSPDG/gotv-plus-go/gotv"
-	"github.com/FlowingSPDG/gotv-plus-go/gotv/examples/gcs"
 )
 
 var (
@@ -22,7 +24,13 @@ func main() {
 	flag.IntVar(&port, "port", 8080, "Port to listne")
 	flag.Parse()
 
-	m := gcs.NewCloudStorageGOTV(auth)
+	ctx := context.Background()
+	s, err := storage.NewClient(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	m := gcs.NewCloudStorageGOTV(s, auth, 8)
 	app := fiber.New()
 	g := app.Group("/gotv") // /gotv
 	g.Use(logger.New())
