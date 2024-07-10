@@ -1,6 +1,8 @@
 module github.com/FlowingSPDG/gotv-plus-go
 
-go 1.18
+go 1.21
+
+toolchain go1.22.2
 
 require (
 	github.com/gin-gonic/gin v1.8.1
@@ -20,7 +22,11 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
+	github.com/oklog/ulid/v2 v2.1.0 // indirect
+	github.com/samber/lo v1.38.1 // indirect
+	github.com/samber/oops v1.12.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	google.golang.org/api v0.103.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

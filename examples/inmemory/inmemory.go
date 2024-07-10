@@ -1,6 +1,8 @@
 package inmemory
 
 import (
+	"bytes"
+	"io"
 	"sync"
 	"time"
 
@@ -136,7 +138,7 @@ func (m *InMemory) GetSync(token string, fragment int) (gotv.Sync, error) {
 }
 
 // GetDelta implements gotv.Broadcaster
-func (m *InMemory) GetDelta(token string, fragment int) ([]byte, error) {
+func (m *InMemory) GetDelta(token string, fragment int) (io.ReadCloser, error) {
 	m.RLock()
 	defer m.RUnlock()
 	if !m.isMatchExist(token) {
@@ -150,11 +152,12 @@ func (m *InMemory) GetDelta(token string, fragment int) ([]byte, error) {
 	if !ok {
 		return nil, gotv.ErrMatchNotFound
 	}
-	return b.Delta, nil
+	r := bytes.NewReader(b.Delta)
+	return r, nil
 }
 
 // GetFull implements gotv.Broadcaster
-func (m *InMemory) GetFull(token string, fragment int) ([]byte, error) {
+func (m *InMemory) GetFull(token string, fragment int) (io.ReadCloser, error) {
 	m.RLock()
 	defer m.RUnlock()
 	if !m.isMatchExist(token) {
@@ -168,11 +171,12 @@ func (m *InMemory) GetFull(token string, fragment int) ([]byte, error) {
 	if !ok {
 		return nil, gotv.ErrMatchNotFound
 	}
-	return b.Full, nil
+	r := bytes.NewReader(b.Full)
+	return r, nil
 }
 
 // GetStart implements gotv.Broadcaster
-func (m *InMemory) GetStart(token string, fragment int) ([]byte, error) {
+func (m *InMemory) GetStart(token string, fragment int) (io.ReadCloser, error) {
 	m.RLock()
 	defer m.RUnlock()
 	if !m.isMatchExist(token) {
@@ -186,7 +190,8 @@ func (m *InMemory) GetStart(token string, fragment int) ([]byte, error) {
 	if !ok {
 		return nil, gotv.ErrMatchNotFound
 	}
-	return b.Body, nil
+	r := bytes.NewReader(b.Body)
+	return r, nil
 }
 
 // OnStart implements gotv.Store
@@ -203,7 +208,11 @@ func (m *InMemory) OnStart(token string, fragment int, f gotv.StartFrame) error 
 }
 
 // OnFull implements gotv.Store
-func (m *InMemory) OnFull(token string, fragment int, tick int, at time.Time, b []byte) error {
+func (m *InMemory) OnFull(token string, fragment int, tick int, at time.Time, r io.Reader) error {
+	fd, err := io.ReadAll(r)
+	if err != nil {
+		return err
+	}
 	m.Lock()
 	defer m.Unlock()
 	if !m.isMatchExist(token) {
@@ -214,14 +223,18 @@ func (m *InMemory) OnFull(token string, fragment int, tick int, at time.Time, b 
 	}
 	m.match[token].Fragments[fragment].At = at
 	m.match[token].Fragments[fragment].Tick = tick
-	m.match[token].Fragments[fragment].Full = b
+	m.match[token].Fragments[fragment].Full = fd
 	m.match[token].Latest = fragment
 	m.match[token].ReceiveAge = time.Now()
 	return nil
 }
 
 // OnDelta implements gotv.Store
-func (m *InMemory) OnDelta(token string, fragment int, endtick int, at time.Time, final bool, b []byte) error {
+func (m *InMemory) OnDelta(token string, fragment int, endtick int, at time.Time, final bool, r io.Reader) error {
+	dd, err := io.ReadAll(r)
+	if err != nil {
+		return err
+	}
 	m.Lock()
 	defer m.Unlock()
 	if !m.isMatchExist(token) {
@@ -231,8 +244,8 @@ func (m *InMemory) OnDelta(token string, fragment int, endtick int, at time.Time
 		m.match[token].Fragments[fragment] = &gotv.Fragment{}
 	}
 	m.match[token].Fragments[fragment].EndTick = endtick
-	m.match[token].Fragments[fragment].Final = final
-	m.match[token].Fragments[fragment].Delta = b
+	m.match[token].Fragments[fragment].Final = &final
+	m.match[token].Fragments[fragment].Delta = dd
 	return nil
 }
 

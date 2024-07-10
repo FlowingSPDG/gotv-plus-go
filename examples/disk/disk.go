@@ -2,7 +2,9 @@ package disk
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"time"
@@ -40,10 +42,10 @@ func (d *Disk) syncPath(token string) string {
 }
 
 // GetDelta implements gotv.Broadcaster
-func (d *Disk) GetDelta(token string, fragment int) ([]byte, error) {
-	b, err := os.ReadFile(d.deltaFramePath(token, fragment))
+func (d *Disk) GetDelta(token string, fragment int) (io.Reader, error) {
+	file, err := os.OpenFile(d.deltaFramePath(token, fragment), os.O_RDONLY, 0755)
 	if err != nil {
-		if xerrors.Is(err, os.ErrNotExist) {
+		if errors.Is(err, os.ErrNotExist) {
 			return nil, gotv.ErrFragmentNotFound
 		}
 		return nil, err
@@ -52,7 +54,7 @@ func (d *Disk) GetDelta(token string, fragment int) ([]byte, error) {
 }
 
 // GetFull implements gotv.Broadcaster
-func (d *Disk) GetFull(token string, fragment int) ([]byte, error) {
+func (d *Disk) GetFull(token string, fragment int) (io.Reader, error) {
 	b, err := os.ReadFile(d.fullFramePath(token, fragment))
 	if err != nil {
 		if xerrors.Is(err, os.ErrNotExist) {
@@ -64,7 +66,7 @@ func (d *Disk) GetFull(token string, fragment int) ([]byte, error) {
 }
 
 // GetStart implements gotv.Broadcaster
-func (d *Disk) GetStart(token string, fragment int) ([]byte, error) {
+func (d *Disk) GetStart(token string, fragment int) (io.Reader, error) {
 	b, err := os.ReadFile(d.startFramePath(token, fragment))
 	if err != nil {
 		if err == os.ErrNotExist {
@@ -110,12 +112,12 @@ func (d *Disk) GetSync(token string, fragment int) (gotv.Sync, error) {
 }
 
 // OnDelta implements gotv.Store
-func (d *Disk) OnDelta(token string, fragment int, endtick int, at time.Time, final bool, b []byte) error {
+func (d *Disk) OnDelta(token string, fragment int, endtick int, at time.Time, final bool, r io.Reader) error {
 	return os.WriteFile(d.deltaFramePath(token, fragment), b, 0755)
 }
 
 // OnFull implements gotv.Store
-func (d *Disk) OnFull(token string, fragment int, tick int, at time.Time, b []byte) error {
+func (d *Disk) OnFull(token string, fragment int, tick int, at time.Time, r io.Reader) error {
 	s := gotv.Sync{}
 	b, err := os.ReadFile(d.syncPath(token))
 	if err != nil {

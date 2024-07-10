@@ -24,8 +24,9 @@ func main() {
 	m := inmemory.NewInmemoryGOTV(auth)
 	app := gin.Default()
 	g := app.Group("/gotv") // /gotv
-	gotv.SetupStoreHandlersGin(m, g)
-	gotv.SetupBroadcasterHandlersGin(m, g)
+	cstv := gotv.NewGinCSTV(m, m, m)
+	gotv.SetupStoreHandlersGin(cstv, g)
+	gotv.SetupBroadcasterHandlersGin(cstv, g)
 
 	p := fmt.Sprintf("%s:%d", "", port)
 

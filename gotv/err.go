@@ -1,9 +1,9 @@
 package gotv
 
-import "golang.org/x/xerrors"
+import "errors"
 
 var (
-	ErrInvalidAuth      = xerrors.New("Invalid Authentication")
-	ErrFragmentNotFound = xerrors.New("Fragment Not Found")
-	ErrMatchNotFound    = xerrors.New("Match Not Found")
+	ErrInvalidAuth      = errors.New("Invalid Authentication")
+	ErrFragmentNotFound = errors.New("Fragment Not Found")
+	ErrMatchNotFound    = errors.New("Match Not Found")
 )
