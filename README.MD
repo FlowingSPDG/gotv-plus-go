@@ -1,5 +1,7 @@
 # GOTV+ Broadcast Server written in Go  
 
+> **This project is archived.** For a maintained successor, please consider [**FlowingSPDG/cstv-cloudflare**](https://github.com/FlowingSPDG/cstv-cloudflare) — a GOTV+ relay on Cloudflare Workers and Durable Objects.
+
 ## Author
 Shugo Kawamura  
 Github : [**FlowingSPDG**](http://github.com/FlowingSPDG)  
